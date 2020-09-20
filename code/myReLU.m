@@ -1,4 +1,7 @@
  classdef myReLU    
+    properties
+    end
+    
     methods(Static)
         function R = layerReach(I, W, b, method)
             % @I: input set

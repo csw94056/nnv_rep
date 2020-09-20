@@ -1,7 +1,5 @@
-clear all;
-close all;
-clc;
 
+c
 I = ExamplePoly.randHrep('d',2);
 S = myStar(I);
 
