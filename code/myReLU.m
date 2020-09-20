@@ -5,6 +5,29 @@
     
     methods(Static)
         
+        function [R, ct] = relu_FNN_reach_BFS(W, b, I, method)
+            % @I: input set (Polyhedron or Star set)
+            % @W: weight matrices
+            % @b: bias vectors
+            % @R: reachable set
+            % @method: exact - exact reachability method
+            %          approx - approximate reachability method 
+            % @ct: computation time
+
+            %{
+            if ~strcmp(method,'exact') & ~strcmp(method,'approx') 
+                error('Unknown method\n method options:\n\t''exact'' - exact reachbility analysis\n\t''apporx'' - over-approximate rechability analysis\n'); 
+            end
+            %}
+            
+            tic
+            R = I;
+            for i=1:length(W)
+                R = layerReach(W{i}, b{i}, R, method);
+            end
+            ct = toc;
+        end
+
         function R = layerReach(I, W, b, method)
             % @I: input set
             % @W: weight matrices
@@ -20,7 +43,7 @@
                 elseif isa(I(i), 'myStar')
                     I1 = I(i).affineMap(W,b);
                 else
-                   error('Unknow type of input set');
+                   error('Unknown type of input set');
                 end
                 
                 if strcmp(method, 'approx')
@@ -35,9 +58,9 @@
         function R = reach_exact(I1)
             % @I1: intermediate input set
             if isa(I1, 'Polyhedron')
-                I.outerApprox;
-                lb = I.Internal.lb;
-                ub = I.Internal.ub;
+                I1.outerApprox;
+                lb = I1.Internal.lb;
+                ub = I1.Internal.ub;
             elseif isa(I1, 'myStar')
                 [lb,ub] = I1.getRanges;  % get ranges of all input variables
             else
@@ -254,6 +277,55 @@
                     end
                 end
                 R = [R R1];
+            end
+        end
+        
+        %% misc functions
+        function [W, b] = rand_Layers(nN)
+            % generate random weight matrices and bias vectors
+            % example: nN = [2 3 2]; % 2 inpus, 1 hidden layers, 2 outputs
+
+            W = cell(1, length(nN) - 1); % weight matrices
+            b = cell(1, length(nN) - 1); % bias vectors
+
+            for i=1:length(nN)-1
+                W{i} = rand(nN(i+1), nN(i));
+                b{i} = rand(nN(i+1), 1);
+            end
+        end
+
+        function R = set_div(I, row, col)
+            % @I: input set (Polyhedron or Star)
+            % @row: number of rows divide to
+            % @col: number of columns divide to
+            % @R: array of sets
+            if isa(I, 'Polyhedron') 
+                I.outerApprox;
+                lb = I.Internal.lb;
+                ub = I.Internal.ub;
+            elseif isa(I, 'myStar')
+                [lb,ub] = I.getRanges;
+            end
+            col_div = (ub(1)-lb(1))/col;
+            row_div = (ub(2)-lb(2))/row;
+            k=1;
+            for i=1:col
+                for j=1:row
+                    lb_1=lb(1)+(i-1)*col_div;
+                    lb_2=lb(2)+(j-1)*row_div;
+                    ub_1=lb(1)+i*col_div;
+                    ub_2=lb(2)+j*row_div;
+                    C = [eye(I.Dim);-eye(I.Dim)];
+                    d = [ub_1;ub_2;-lb_1;-lb_2];
+                    if isa(I, 'Polyhedron') 
+                        R(k) = Polyhedron('A',C, 'b',d);
+                    elseif isa(I, 'myStar')
+                        V = [zeros(I.Dim,1) eye(I.Dim)];
+                        S = myStar(V, C, d);
+                        R(k) = Intersect(I,S);
+                    end
+                    k=k+1;
+                end
             end
         end
     end
