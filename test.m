@@ -1,0 +1,1 @@
+I = ExamplePoly.randHrep('d',2);
