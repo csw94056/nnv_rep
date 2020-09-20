@@ -220,7 +220,7 @@ Setup = tbx_setup;
 this_file = [Setup.maindir filesep mfilename '.m'];
 this_content = fileread(this_file);
 
-other_content = sub_urlread(Setup.selfurl);
+other_content = urlread(Setup.selfurl);
 other_crc = sum(other_content);
 if tbx_crc32(this_content) == tbx_crc32(other_content)
 	fprintf('You already have the newest version of tbxmanager.\n');
@@ -230,7 +230,7 @@ else
 		error('TBXMANAGER:FILEERROR', 'Couldn''t back up %s to %s.', this_file, ...
 			[this_file '.old']);
 	end
-	sub_urlwrite(Setup.selfurl, this_file);
+	urlwrite(Setup.selfurl, this_file);
 	rehash
 	fprintf('tbxmanager updated to latest version.\n');
 end
@@ -354,7 +354,7 @@ function tbx_addSource(source)
 
 % is the source valid?
 try
-	sub_urlread(source);
+	urlread(source);
 catch
 	error('TBXMANAGER:URLERROR', 'Unable to connect to %s', source);
 end
@@ -765,7 +765,7 @@ end
 download_to = [install_dir filesep install_file];
 fprintf('Downloading "%s"...\n', Toolbox.url);
 try
-	sub_urlwrite(Toolbox.url, download_to);
+	urlwrite(Toolbox.url, download_to);
 catch
 	% remove the created directory
 	rmdir(install_dir, 's');
@@ -803,7 +803,8 @@ if ~isempty(Toolbox.license.text)
 	fprintf('%s\n', Toolbox.license.text);
 	fprintf('%s\n', repmat('-', 1, 80));
 	fprintf('\n');
-	agreed = tbx_ask('Do you agree? [y/n]: ', mfilename, 'y', Toolbox);
+	%agreed = tbx_ask('Do you agree? [y/n]: ', mfilename, 'y', Toolbox);
+    agreed = 'y';
 	if isempty(agreed) || lower(agreed(1)) == 'n'
 		error('TBXMANAGER:BADCOMMAND', ...
 			'Cannot install "%s" without agreeing to its license.', ...
@@ -939,7 +940,7 @@ function L = tbx_loadSource(source)
 
 if ~exist(source, 'file')
 	% make a local copy of the network file
-	xml = sub_urlread(source);
+	xml = urlread(source);
 	source = tempname;
 	fid = fopen(source, 'w');
 	fprintf(fid, '%s\n', xml);
@@ -1024,7 +1025,7 @@ end
 if isfield(X, 'url')
 	license_url = X.url.Text;
 	try
-		L.text = deblank(sub_urlread(license_url));
+		L.text = deblank(urlread(license_url));
 	catch
 		error('TBXMANAGER:URLERROR', ...
 			'Couldn''t connect to %s', license_url);
@@ -1374,70 +1375,7 @@ if ~isempty(varargin)
 end
 % call the url
 try
-	sub_urlread(url);
-end
-
-end
-
-%%
-function sub_urlwrite(url, filename)
-
-if exist('websave', 'file')
-    % use websave as it handles https
-    
-    % disable SSL certificate verification (problem with Let's Encrypt
-    % certificates)
-    % see https://www.mathworks.com/matlabcentral/answers/92506-how-can-i-configure-matlab-to-allow-access-to-self-signed-https-servers
-    try
-        opts = weboptions('Timeout', 30, 'CertificateFilename', '');
-    catch
-        opts = weboptions('Timeout', 30);
-    end
-    websave(filename, url, opts);
-else
-    %if length(url)>6 && isequal(lower(url(1:6)), 'https:')
-    %    fprintf('\nWARNING: websave() not available, falling back to urlwrite() which, however, can have issues with https pages.\n');
-    %end
-    try
-        urlwrite(url, filename);
-    catch
-        fprintf('WARNING: urlwrite() failed, using slower download method (upgrade to Matlab R2013a to fix this problem)\n');
-        fid = fopen(filename, 'w');
-        c = onCleanup(@() fclose(fid));
-        u = java.net.URL(url);
-        conn = u.openConnection();
-        conn.connect();
-        str = conn.getInputStream();
-        b = 0;
-        while b>=0
-            b = str.read();
-            fwrite(fid, b);
-        end
-    end
-end
-
-end
-
-%%
-function data = sub_urlread(url)
-
-if exist('webread', 'file')
-    % use webread() as it handles https
-    
-    % disable SSL certificate verification (problem with Let's Encrypt
-    % certificates)
-    % see https://www.mathworks.com/matlabcentral/answers/92506-how-can-i-configure-matlab-to-allow-access-to-self-signed-https-servers
-    try
-        opts = weboptions('CertificateFilename', '');
-    catch
-        opts = weboptions;
-    end
-    data = webread(url, opts);
-else
-    if length(url)>6 && isequal(lower(url(1:6)), 'https:')
-        fprintf('\nWARNING: webread() not available, falling back to urlread() which, however, can have issues with https pages.\n');
-    end
-    data = urlread(url);
+	urlread(url);
 end
 
 end

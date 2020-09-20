@@ -1,8 +1,10 @@
  classdef myReLU    
+     
     properties
     end
     
     methods(Static)
+        
         function R = layerReach(I, W, b, method)
             % @I: input set
             % @W: weight matrices
@@ -38,6 +40,8 @@
                 ub = I.Internal.ub;
             elseif isa(I1, 'myStar')
                 [lb,ub] = I1.getRanges;  % get ranges of all input variables
+            else
+               error('Unknow input set'); 
             end
             
             map = find(lb<0);       % construct computation map
@@ -252,7 +256,5 @@
                 R = [R R1];
             end
         end
-        
-        % Approximate method
     end
  end

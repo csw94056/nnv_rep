@@ -4,8 +4,8 @@ clc;
 
 I = ExamplePoly.randHrep('d',2);
 S = myStar(I);
-
-R = myReLU.reach_exact(I);
-plot(I, 'r');
+plot(S)
+R = myReLU.reach_exact(S);
+plot(I);
 hold on;
-polt(R, 'g');
+plot(R);
