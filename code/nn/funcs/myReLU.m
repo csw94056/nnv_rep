@@ -5,6 +5,23 @@
     
     methods(Static)
         
+        function [R, ct] = relu_FNN_reach_BFS(I, W, b, method)
+            % @I: input set (Polyhedron or Star set)
+            % @W: weight matrices
+            % @b: bias vectors
+            % @R: reachable set
+            % @method: exact - exact reachability method
+            %          approx - approximate reachability method 
+            % @ct: computation time
+            
+            tic
+            R = I;
+            for i=1:length(W)
+                R = myReLU.layerReach(R, W{i}, b{i}, method);
+            end
+            ct = toc;
+        end
+
         function R = layerReach(I, W, b, method)
             % @I: input set
             % @W: weight matrices
@@ -16,19 +33,20 @@
             R = [];
             for i=1:length(I)
                 if isa(I(i), 'Polyhedron')
-                    I1 = I(i).affineMap(W)+b;                 
+                    I1 = I(i).affineMap(W) + b;                 
                 elseif isa(I(i), 'myStar')
-                    I1 = I(i).affineMap(W,b);
+                    I1 = I(i).affineMap(W, b);
                 else
-                   error('Unknow type of input set');
+                   error('Unknown type of input set');
                 end
                 
                 if strcmp(method, 'approx')
                     R = [R myReLU.reach_approx(I1)];
                 elseif strcmp(method, 'exact')
                     R = [R myReLU.reach_exact(I1)];
+                else
+                    error('foo:bar','Unknown method\nMethod options:\n\t''exact'' - exact reachbility analysis\n\t''approx'' - over-approximate rechability analysis\n'); 
                 end
-                error('Unknown method\n method options:\n\t''exact'' - exact reachbility analysis\n\t''apporx'' - over-approximate rechability analysis\n'); 
             end
         end        
 
@@ -48,9 +66,9 @@
             In = I1;
             for i=1:length(map)
                 if isa(I1, 'Polyhedron')
-                    In = myReLU.stepReLU_poly(In,map(i),lb(map(i)),ub(map(i)));
+                    In = myReLU.stepReLU_poly(In, map(i), lb(map(i)), ub(map(i)));
                 elseif isa(I1, 'myStar')
-                    In = myReLU.stepReLU_star(In, map(i),lb(i),ub(i));
+                    In = myReLU.stepReLU_star(In, map(i), lb(i), ub(i));
                 end
             end
             R = In;
@@ -60,9 +78,9 @@
         function R = reach_approx(I1)
             % @I1: intermediate input set
             if isa(I1, 'Polyhedron')
-                R = myReLU.approxReLU_poly(I1)
+                R = myReLU.approxReLU_poly(I1);
             elseif isa(I1, 'myStar')
-                R = myReLU.approxReachReLU_star(I)
+                R = myReLU.approxReachReLU_star(I1);
             end
         end
         
@@ -257,6 +275,20 @@
             end
         end
         
+        %% misc functions
+        function [W, b] = rand_Layers(nN)
+            % generate random weight matrices and bias vectors
+            % example: nN = [2 3 2]; % 2 inpus, 1 hidden layers, 2 outputs
+
+            W = cell(1, length(nN) - 1); % weight matrices
+            b = cell(1, length(nN) - 1); % bias vectors
+
+            for i=1:length(nN)-1
+                W{i} = rand(nN(i+1), nN(i));
+                b{i} = rand(nN(i+1), 1);
+            end
+        end
+
         function R = set_div(I, row, col)
             % @I: input set (Polyhedron or Star)
             % @row: number of rows divide to
@@ -290,6 +322,18 @@
                     k=k+1;
                 end
             end
+        end
+        
+        function plot_set(I, str)
+            % I: input set
+            % str: title
+            % ploting polyhedron or star set with title
+            nexttile
+            plot(I);
+            title(str);
+            xlabel('x');
+            ylabel('y');
+            zlabel('z');
         end
     end
  end
