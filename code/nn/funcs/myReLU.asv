@@ -190,23 +190,21 @@
             elseif ub<=0
                 % R1 = projection of I1 on x[i]=0
                 star_V = I.V;
+                %star_V(i, :) = zeros(1, size(star_V,2));
                 star_V(i,:) = 0;
                 R = myStar(star_V, I.C, I.d);
             elseif lb<0 && ub>0
                 % y[i] = ReLU(x[i]) = a_(m+1)
                 V = I.get_V;
                 c = I.get_c;
-                
-                % constraint 1: y[i] >= 0
+                % y[i] >= 0
                 m = size(I.C,2);
                 C1 = [zeros(1,m) -1];
                 d1 = 0;
-                
-                % constraint 2: y[i] >= x[i]
+                % y[i] >= x[i]
                 C2 = [V(i,:) -1];
                 d2 = -c(i);
-                
-                % constraint 3: y[i] <= ub(x[i]-lb)/(ub-lb)
+                % y[i] <= ub(x[i]-lb)/(ub-lb)
                 C3 = [-ub*V(i,:)/(ub-lb) 1];
                 d3 = ub*(c(i)-lb)/(ub-lb);
 
@@ -217,7 +215,7 @@
                 new_d = [d0; d1; d2; d3];
 
                 star_V = I.V;
-                star_V(i,:) = 0;
+                star_V(i, :) = zeros(1, size(star_V,2));
                 e = zeros(I.Dim,1);
                 e(i,1) = 1;
                 star_V = [star_V e];
