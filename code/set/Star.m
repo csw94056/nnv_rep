@@ -1,4 +1,4 @@
-classdef myStar
+classdef Star
     properties
         V = []; % a set of basic vectors
         C = []; % predicate constraint matrix
@@ -9,7 +9,7 @@ classdef myStar
         predicate_ub = []; % upper bound vector of predicate variable
     end
     methods
-        function obj = myStar(varargin)
+        function obj = Star(varargin)
             switch nargin
                 case 0 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 0
                     obj.V = 0;
@@ -69,21 +69,23 @@ classdef myStar
                     b = varargin{3};
                     V = W * obj.V ;
                     V(:, 1) = V(:, 1) + b;
-                    S = myStar(V, obj.C, obj.d);
+                    S = Star(V, obj.C, obj.d);
                 case 2
                     obj = varargin{1};
                     W = varargin{2};
                     V = W * obj.V;
-                    S = myStar(V, obj.C, obj.d);
+                    S = Star(V, obj.C, obj.d);
             end
         end
         
         function [lb, ub] = getRanges(obj)
+            %{
             P1 = Polyhedron('A', obj.C, 'b', obj.d);
             V = obj.get_V;
             c = obj.get_c;
             P = V*P1 + c;
-
+            %}
+            P = obj.toPolyhedron;
             P.outerApprox;
             lb = P.Internal.lb;
             ub = P.Internal.ub;
@@ -99,20 +101,54 @@ classdef myStar
         
         function V = get_V(obj)
             obj_V = obj.V;
-            V = obj.V(:,2:size(obj.V,2));
+            V = obj_V(:,2:size(obj.V,2));
         end
         
         function c = get_c(obj)
             c = obj.V(:,1);
         end
         
-        function P = getPoly(obj)
-            P1 = Polyhedron('A', obj.C, 'b', obj.d);
+        function P = toPolyhedron(obj)
+            P1 = Polyhedron('A', [obj.C], 'b', [obj.d]);
             V = obj.get_V;
             c = obj.get_c;
             P = V*P1 + c;
         end
         
+        function plot (varargin)
+            color = 'red';
+                   
+            switch nargin
+                case 1
+                    obj = varargin{1};
+                case 2
+                    obj = varargin{1};
+                    color = varargin{2};
+            end
+          
+            n = length(obj);
+            if ~strcmp(color, 'rand')
+                c_rand = color;
+            end
+            hold on;
+            for i=1:n
+                I = obj(i);
+                %{
+                P1 = Polyhedron('A', I.C, 'b', I.d);
+                V = I.get_V;
+                c = I.get_c;
+                P = V*P1 + c;
+                %}
+                P = I.toPolyhedron;
+                if strcmp(color, 'rand')
+                    c_rand = rand(1,3);
+                end
+            
+                plot(P, 'color', c_rand);
+            end
+            hold off
+        end
+        %{
         function plot(obj)
             n = length(obj);
             for i=1:n
@@ -130,6 +166,7 @@ classdef myStar
             end
             hold off
         end
+        %}
         
         function S = Intersect(obj1, obj2)         
           C1 = obj2.C * obj1.get_V;
@@ -137,7 +174,7 @@ classdef myStar
           
           new_C = [obj1.C; C1];
           new_d = [obj1.d; d1];
-          S = myStar(obj1.V, new_C, new_d);     
+          S = Star(obj1.V, new_C, new_d);     
           %if isEmptySet(S)
           %    S = [];
           %end
