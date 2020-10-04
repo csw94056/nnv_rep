@@ -9,7 +9,7 @@ clc;
 
 %% computing reachable set of a relu network
 dim = 2;
-n_dim = 5;%20;
+n_dim = 20;
 out_dim = 2;
 
 % random n-dimensional polyhedron
@@ -19,7 +19,7 @@ S = Star(I);
 R_pe = ReLU.reach_exact(I);
 R_se = ReLU.reach_exact(S);
 R_pa = ReLU.reach_approx(I);
-R_sa = ReLU.reach_approx(S, 'approx');
+R_sa = ReLU.reach_approx(S);
 
 
 %% Reachability analysis of each method
@@ -34,7 +34,7 @@ ReLU.plot_set(R_sa, 'R star approx');
 
 
 %% FNN network of [2 n 2]
-figure('Name','Computation of reachability of a FNN relu network');
+figure('Name','Computation of reachable set of a FNN relu network');
 for i=dim:n_dim
     disp('------Computing reachable set of a FNN relu network------')   
     fprintf('network dimensions: [%d %d %d]\n',dim, i, out_dim');
@@ -43,19 +43,19 @@ for i=dim:n_dim
     [W, b] = ReLU.rand_Layers(nN);
 
     disp('-Exact reachability analysis for Polyhedron')
-    [R_pe, ct_pe] = ReLU.FNN_reach_BFS(I, W, b, 'exact');
+    [R_pe, ct_pe] = ReLU.relu_FNN_reach_BFS(I, W, b, 'exact');
     fprintf('computation time: %f sec\n', ct_pe);
 
     disp('-Exact reachability analysis for Star Set')
-    [R_se, ct_se] = ReLU.FNN_reach_BFS(S, W, b, 'exact');
+    [R_se, ct_se] = ReLU.relu_FNN_reach_BFS(S, W, b, 'exact');
     fprintf('computation time: %f sec\n', ct_se);
     
     disp('-Approximate reachability analysis for Polyhedron')
-    [R_pa, ct_pa] = ReLU.FNN_reach_BFS(I, W, b, 'approx');
+    [R_pa, ct_pa] = ReLU.relu_FNN_reach_BFS(I, W, b, 'approx');
     fprintf('computation time: %f sec\n', ct_pa);
 
     disp('-Approximate reachability analysis for Star Set')
-    [R_sa, ct_sa] = ReLU.FNN_reach_BFS(S, W, b, 'approx');
+    [R_sa, ct_sa] = ReLU.relu_FNN_reach_BFS(S, W, b, 'approx');
     fprintf('computation time: %f sec\n\n', ct_sa);
 
     hold on
@@ -65,14 +65,14 @@ for i=dim:n_dim
     plot(i,ct_sa,'^','Linewidth', 2, 'color', 'magenta');
     xlim([dim n_dim]);
     hold off
-    legend('exact polyhedron', 'exact star set', 'approx polyhedron', 'approx star set')
+    
 end
-title('the reachability time vs. the dimension of a hidden layer');
+title('the verification time vs. the dimension of a hidden layer');
 ylabel('verification time (sec)');
 xlabel('dimension of a hidden layer');
 
 %% FNN network of [2 n n n 2]
-figure('Name','Computation of reachability of a FNN relu network');
+figure
 for i=dim:n_dim
     disp('------Computing reachable set of a FNN relu network------')
     fprintf('network dimensions: [%d %d %d %d %d]\n',dim, i, i, i, out_dim');
@@ -81,19 +81,19 @@ for i=dim:n_dim
     [W, b] = ReLU.rand_Layers(nN);
 
     disp('-Exact reachability analysis for Polyhedron')
-    [R_pe, ct_pe] = ReLU.FNN_reach_BFS(I, W, b, 'exact');
+    [R_pe, ct_pe] = ReLU.relu_FNN_reach_BFS(I, W, b, 'exact');
     fprintf('computation time: %f sec\n', ct_pe);
 
     disp('-Exact reachability analysis for Star Set')
-    [R_se, ct_se] = ReLU.FNN_reach_BFS(S, W, b, 'exact');
+    [R_se, ct_se] = ReLU.relu_FNN_reach_BFS(S, W, b, 'exact');
     fprintf('computation time: %f sec\n', ct_se);
     
     disp('-Approximate reachability analysis for Polyhedron')
-    [R_pa, ct_pa] = ReLU.FNN_reach_BFS(I, W, b, 'approx');
+    [R_pa, ct_pa] = ReLU.relu_FNN_reach_BFS(I, W, b, 'approx');
     fprintf('computation time: %f sec\n', ct_pa);
 
     disp('-Approximate reachability analysis for Star Set')
-    [R_sa, ct_sa] = ReLU.FNN_reach_BFS(S, W, b, 'approx');
+    [R_sa, ct_sa] = ReLU.relu_FNN_reach_BFS(S, W, b, 'approx');
     fprintf('computation time: %f sec\n\n', ct_sa);
 
     hold on
@@ -105,6 +105,6 @@ for i=dim:n_dim
     hold off
     legend('exact polyhedron', 'exact star set', 'approx polyhedron', 'approx star set')
 end
-title('the reachability time vs. the dimension of hidden layers in [2 n n n 2] network');
+title('the verification time vs. the dimension of hidden layers in [2 n n n 2] network');
 ylabel('verification time (sec)');
 xlabel('dimension of hidden layers');

@@ -42,7 +42,7 @@ ReLU.plot_set(R,'R star approx');
 R_pe = ReLU.reach_exact(I);
 R_pa = ReLU.reach_approx(I);
 R_se = ReLU.reach_exact(S);
-R_sa = ReLU.reach_approx(S, 'approx');
+R_sa = ReLU.reach_approx(S);
 figure('Name','ReLU computation');
 ReLU.plot_set(I, 'I poly');
 ReLU.plot_set(S, 'I star');

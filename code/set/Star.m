@@ -79,12 +79,6 @@ classdef Star
         end
         
         function [lb, ub] = getRanges(obj)
-            %{
-            P1 = Polyhedron('A', obj.C, 'b', obj.d);
-            V = obj.get_V;
-            c = obj.get_c;
-            P = V*P1 + c;
-            %}
             P = obj.toPolyhedron;
             P.outerApprox;
             lb = P.Internal.lb;
@@ -133,12 +127,6 @@ classdef Star
             hold on;
             for i=1:n
                 I = obj(i);
-                %{
-                P1 = Polyhedron('A', I.C, 'b', I.d);
-                V = I.get_V;
-                c = I.get_c;
-                P = V*P1 + c;
-                %}
                 P = I.toPolyhedron;
                 if strcmp(color, 'rand')
                     c_rand = rand(1,3);

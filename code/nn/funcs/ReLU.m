@@ -5,7 +5,25 @@
     
     methods(Static)
         
-        function [R, ct] = relu_FNN_reach_BFS(I, W, b, method)
+        function [sat, R] = verify_relu_FNN_BFS(W, b, I, P)
+            % @W: weight matrices
+            % @b: bias vectors
+            % @I: input set
+            % @sat: = 0 -> UNSAT, = 1: SAT
+
+            R = relu_FNN_reach_BFS(W, b, I);
+            n = length(R);
+            sat = 0;
+            for i=1:n
+                T = intersect(R(i), P);
+                if ~T.isEmptySet 
+                    sat =1;
+                    break;
+                end
+            end
+        end
+
+        function [R, ct] = FNN_reach_BFS(I, W, b, method)
             % @I: input set (Polyhedron or Star set)
             % @W: weight matrices
             % @b: bias vectors
@@ -81,7 +99,7 @@
         
         function R = reach_approx(I1, method)
             % @I1: intermediate input set
-            if isa(I1, 'Polyhedron') && strcmp(method, 'approx')
+            if isa(I1, 'Polyhedron')
                 R = ReLU.approxReLU_poly(I1);
             elseif isa(I1, 'Star')
                 if strcmp(method, 'approx')
