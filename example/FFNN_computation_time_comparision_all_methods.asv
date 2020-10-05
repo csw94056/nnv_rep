@@ -9,17 +9,13 @@ clc;
 
 %% computing reachable set of a relu network
 dim = 2;
-n_dim = 10;
+n_dim = 15;
 out_dim = 2;
 
 % random n-dimensional polyhedron
 I = ExamplePoly.randHrep('d',dim); % input set
 S = Star(I);
 Z = Zonotope(I);
-
-orange = [0.91 0.41 0.17];
-dark_green = [0, 0.5, 0];
-gray = [0.5 0.5 0.5];
 
 %% FNN network of [2 n 2]
 figure('Name','Computation of reachablility of a FNN network');
@@ -46,17 +42,17 @@ for i=dim:n_dim
     [R_sa, ct_sa] = ReLU.FNN_reach_BFS(S, W, b, 'approx');
     fprintf('computation time: %f sec\n', ct_sa);
     
+    disp('-Approximate reachability analysis for Zonotope Set')
+    [R_za, ct_za] = Sigmoid.FNN_reach_BFS(Z, W, b, 'logsig');
+    fprintf('computation time: %f sec\n\n', ct_za);
+    
+    disp('-Approximate reachability analysis for Zonotope Set')
+    [R_za, ct_za] = SigFNN_reach_BFS(Z, W, b, 'approx');
+    fprintf('computation time: %f sec\n\n', ct_za);
+    
     disp('-Abstract domain Approximate reachability analysis for Star Set')
     [R_sabs, ct_sabs] = ReLU.FNN_reach_BFS(S, W, b, 'abs_domain');
     fprintf('computation time: %f sec\n', ct_sabs);
-    
-    disp('-Tanh reachability analysis for Star Set')
-    [R_stan, ct_stan] = Sigmoid.FNN_reach_BFS(S, W, b, 'tansig');
-    fprintf('computation time: %f sec\n', ct_stan);
-    
-    disp('-Losig reachability analysis for Star Set')
-    [R_slog, ct_slog] = Sigmoid.FNN_reach_BFS(S, W, b, 'logsig');
-    fprintf('computation time: %f sec\n', ct_slog);
     
     disp('-Approximate reachability analysis for Zonotope Set')
     [R_za, ct_za] = ReLU.FNN_reach_BFS(Z, W, b, 'approx');
@@ -68,12 +64,10 @@ for i=dim:n_dim
     plot(i,ct_pa,'*','Linewidth', 1, 'color', 'green');
     plot(i,ct_sa,'*','Linewidth', 1, 'color', 'magenta');
     plot(i,ct_sabs,'*','Linewidth', 1, 'color', 'cyan');
-    plot(i,ct_stan,'*','Linewidth', 1, 'color', dark_green);
-    plot(i,ct_slog,'*','Linewidth', 1, 'color', gray);
     plot(i,ct_za,'square','Linewidth', 1, 'color', 'black');
     xlim([dim n_dim]);
     hold off
-    legend('exact Polyhedron', 'approx Polyhedron', 'exact Star', 'approx Star', 'abs-domain Star', 'tansig Star','logsig Star','approx Zonotope');
+    legend('exact Polyhedron', 'approx Polyhedron', 'exact Star', 'approx Star', 'abs-domain Star','approx Zonotope');
 end
 title('the reachability time vs. the dimension of a hidden layer in [2 n 2] network');
 ylabel('verification time (sec)');
@@ -107,14 +101,6 @@ for i=dim:n_dim
     [R_sabs, ct_sabs] = ReLU.FNN_reach_BFS(S, W, b, 'abs_domain');
     fprintf('computation time: %f sec\n', ct_sabs);
     
-    disp('-Tanh reachability analysis for Star Set')
-    [R_stan, ct_stan] = Sigmoid.FNN_reach_BFS(S, W, b, 'tansig');
-    fprintf('computation time: %f sec\n', ct_stan);
-    
-    disp('-Losig reachability analysis for Star Set')
-    [R_slog, ct_slog] = Sigmoid.FNN_reach_BFS(S, W, b, 'logsig');
-    fprintf('computation time: %f sec\n', ct_slog);
-    
     disp('-Approximate reachability analysis for Zonotope Set')
     [R_za, ct_za] = ReLU.FNN_reach_BFS(Z, W, b, 'approx');
     fprintf('computation time: %f sec\n\n', ct_za);
@@ -125,12 +111,10 @@ for i=dim:n_dim
     plot(i,ct_se,'*','Linewidth', 1, 'color', 'green');
     plot(i,ct_sa,'*','Linewidth', 1, 'color', 'magenta');
     plot(i,ct_sabs,'*','Linewidth', 1, 'color', 'cyan');
-    plot(i,ct_stan,'*','Linewidth', 1, 'color', dark_green);
-    plot(i,ct_slog,'*','Linewidth', 1, 'color', gray);
     plot(i,ct_za,'square','Linewidth', 1, 'color', 'black');
     xlim([dim n_dim]);
     hold off
-    legend('exact Polyhedron', 'approx Polyhedron', 'exact Star', 'approx Star', 'abs-domain Star', 'tansig Star','logsig Star','approx Zonotope');
+    legend('exact Polyhedron', 'approx Polyhedron', 'exact Star', 'approx Star', 'abs-domain Star','approx Zonotope');
 end
 title('the reachability time vs. the dimension of hidden layers in [2 n n n 2] network');
 ylabel('verification time (sec)');

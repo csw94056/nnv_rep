@@ -6,6 +6,7 @@ clc;
 
 orange = [0.91 0.41 0.17];
 dark_green = [0, 0.5, 0];
+gray = [0.5 0.5 0.5];
 
 P = ExamplePoly.randHrep('d',2);
 %P = Polyhedron('lb',[-1;-1],'ub',[1;1]);
@@ -28,8 +29,8 @@ R_slog = Sigmoid.FNN_reach_BFS(S, W, b, 'logsig');
 figure('Name','All methods');
 ReLU.plot_set_hold(P, 'Input set','r');
 ReLU.plot_set_hold(R_pa, 'Polyhedron approx','m');
-ReLU.plot_set_hold(R_stan, 'Star tansig approx', dark_green);
-ReLU.plot_set_hold(R_slog, 'Star logsig approx', orange);
+ReLU.plot_set_hold(R_stan, 'Star tansig approx', gray);
+ReLU.plot_set_hold(R_slog, 'Star logsig approx', dark_green);
 ReLU.plot_set_hold(R_z, 'Zonotope approx', 'c');
 %ReLU.plot_set_hold(R_sza, 'Star zonotope approx', 'm');
 ReLU.plot_set_hold(R_sad, 'Star abs-domain approx', 'g');

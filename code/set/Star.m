@@ -22,25 +22,41 @@ classdef Star
                         error('Input set is not a polyhedron object');
                     end
                     c = zeros(P.Dim,1);
-                    V = eye(P.Dim);
-                    obj.V = [c V];
+                    Ve = eye(P.Dim);
+                    V = [c Ve];
                     if ~isempty(P.Ae)
-                        obj.C = [P.A;P.Ae;-P.Ae];
-                        obj.d = [P.b;P.be;-P.be];
+                        C = [P.A;P.Ae;-P.Ae];
+                        d = [P.b;P.be;-P.be];
                     else
-                        obj.C = P.A;
-                        obj.d = P.b;
+                        C = P.A;
+                        d = P.b;
                     end
-                    obj.Dim = P.Dim;
+                    obj = Star(V, C, d);
                 case 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 3
                     %V need to contain c and V
                     V = varargin{1};
                     C = varargin{2};
                     d = varargin{3};
+                    [nV, mV] = size(V);
+                    [nC, mC] = size(C);
+                    [nd, md] = size(d);
+                    
+                    if mV ~= mC + 1
+                        error('Inconsistency between basic matrix and constraint matrix');
+                    end
+
+                    if nC ~= nd
+                        error('Inconsistency between constraint matrix and constraint vector');
+                    end
+
+                    if md ~= 1
+                        error('constraint vector should have one column');
+                    end
+                    
                     obj.V = V;
                     obj.C = C;
                     obj.d = d;
-                    obj.Dim = size(V,1);
+                    obj.Dim = nV;
                     %{
                     P = Polyhedron('A', obj.C, 'b', obj.d);
                     P.outerApprox;
@@ -52,11 +68,7 @@ classdef Star
                     V = varargin{2};
                     C = varargin{3};
                     d = varargin{4};
-
-                    obj.V = [c V];
-                    obj.C = C;
-                    obj.d = d;
-                    obj.Dim = size(V,2);
+                    obj = Star([c V], C, d);
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% end switch    
             end
         end
