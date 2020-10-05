@@ -38,7 +38,16 @@ classdef Sigmoid
                 error('foo:bar','Unknown function type:\nFunction options:\t ''logsig'' or ''tansig''');
             end
             
-            R = I.affineMap(W, b);
+            if ~isempty(W)
+                if ~isempty(b)
+                    R = I.affineMap(W, b);
+                else
+                    R = I.affineMap(W);
+                end
+            else
+                R = I;
+            end
+            
             n = R.Dim;
             for i = 1:n
                R = Sigmoid.stepSigmoid_star(R, i, func);

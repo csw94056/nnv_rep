@@ -37,21 +37,7 @@ classdef Star
                     V = varargin{1};
                     C = varargin{2};
                     d = varargin{3};
-                    [nV, mV] = size(V);
-                    [nC, mC] = size(C);
-                    [nd, md] = size(d);
                     
-                    if mV ~= mC + 1
-                        error('Inconsistency between basic matrix and constraint matrix');
-                    end
-
-                    if nC ~= nd
-                        error('Inconsistency between constraint matrix and constraint vector');
-                    end
-
-                    if md ~= 1
-                        error('constraint vector should be one column');
-                    end
                     
                     obj.V = V;
                     obj.C = C;
