@@ -450,8 +450,8 @@ classdef Sigmoid
                 c = I.c;
                 
                 lamda = min(dyl, dyu);
-                mu1 = 0.5 * (yu + yl - lamda*(yu + yl));
-                mu2 = 0.5 * (yu - yl - lamda*(yu - yl));
+                mu1 = 0.5 * (yu + yl - lamda*(ub + lb));
+                mu2 = 0.5 * (yu - yl - lamda*(ub - lb));
                 
                 c(i) = lamda*c(i) + mu1;
                 X(i,:) = lamda*X(i,:);
