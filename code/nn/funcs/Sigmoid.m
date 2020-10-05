@@ -41,11 +41,11 @@ classdef Sigmoid
             R = I.affineMap(W, b);
             n = R.Dim;
             for i = 1:n
-               R = Sigmoid.stepSigmoid(R, i, func);
+               R = Sigmoid.stepSigmoid_star(R, i, func);
             end
         end
 
-        function S = stepSigmoid(I, i, func)
+        function S = stepSigmoid_star(I, i, func)
             % @I: input star set
             % @i: index of the dimension we want to apply the ReLU activation
             % function

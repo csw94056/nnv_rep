@@ -148,36 +148,18 @@ classdef Star
             end
             hold off
         end
-        %{
-        function plot(obj)
-            n = length(obj);
-            for i=1:n
-                I = obj(i);
-                hold on
-                P1 = Polyhedron('A', I.C, 'b', I.d);
-                V = I.get_V;
-                c = I.get_c;
-                P = V*P1 + c;
-                if n>1
-                    plot(P, 'color', rand(1,3));
-                else
-                    plot(P);
-                end
-            end
-            hold off
-        end
-        %}
         
-        function S = Intersect(obj1, obj2)         
-          C1 = obj2.C * obj1.get_V;
-          d1 = obj2.d - obj2.C * obj1.get_c;
+        function S = Intersect(obj1, obj2)
           
-          new_C = [obj1.C; C1];
-          new_d = [obj1.d; d1];
-          S = Star(obj1.V, new_C, new_d);     
-          %if isEmptySet(S)
-          %    S = [];
-          %end
+            C1 = obj2.C * obj1.get_V;
+            d1 = obj2.d - obj2.C * obj1.get_c;
+
+            new_C = [obj1.C; C1];
+            new_d = [obj1.d; d1];
+            S = Star(obj1.V, new_C, new_d);     
+            %if isEmptySet(S)
+            %    S = [];
+            %end
         end
             
             

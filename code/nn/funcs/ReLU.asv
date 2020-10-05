@@ -5,32 +5,26 @@
     
     methods(Static)
         
-        function [safe, R, cntr_ex] = verify_FNN_BFS(I, W, b, method, P)
+        function [sat, R, cntr_ex] = verify_FNN_BFS(I, W, b, P)
             % @W: weight matrices
             % @b: bias vectors
             % @I: input set
-            % @safe: 1->SAFE; 0->UNSAFE
+            % @sat: = 0 -> UNSAT, = 1: SAT
             
-            R = ReLU.FNN_reach_BFS(I, W, b, method);
+            R = ReLU.FNN_reach_BFS(W, b, I);
             n = length(R);
             sat = 0;
             for i=1:n
                 if isa(I(i), 'Polyhedron')
                     T = intersect(R(i), P);
-                    if T.isEmptySet
-                        safe = 1;
-                    else
-                        cntr_ex = T;
-                        safe = 0;
+                    if ~T.isEmptySet 
+                        sat =1;
                         break;
                     end
                 elseif isa(I(i), 'Star')
-                    T = R(i).Intersect(P);
-                    if T.isEmptySet
-                        safe = 1;
-                    else 
-                        cntr_ex = T;
-                        safe = 0;
+                    T = I.Intersect(P);
+                    if ~T.isEmptySet
+                        sat = 1;
                         break;
                     end
                 else
