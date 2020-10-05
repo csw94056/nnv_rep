@@ -18,7 +18,7 @@ classdef Sigmoid
             end 
 
             if ~strcmp(func, 'tansig') && ~strcmp(func, 'logsig')
-                error('foo:bar','Unknown function type:\nFunction options:\t ''logsig'' or ''tansig''');
+                error('foo:bar','Unknown sigmoid-type function:\nFunction options:\t ''logsig'' or ''tansig''');
             end
            
             tic
@@ -35,7 +35,7 @@ classdef Sigmoid
             end 
 
             if ~strcmp(func, 'tansig') && ~strcmp(func, 'logsig')
-                error('foo:bar','Unknown function type:\nFunction options:\t ''logsig'' or ''tansig''');
+               error('foo:bar','Unknown sigmoid-type function:\nFunction options:\t ''logsig'' or ''tansig''');
             end
             
             R = I.affineMap(W, b);
@@ -71,7 +71,7 @@ classdef Sigmoid
                 dyl = logsig('dn', lb); % y'(1): derivative at lower bound
                 dyu = logsig('dn', ub); % y'(u): derivative at upper bound
             else
-                error('foo:bar','Unknown function type:\nFunction options:\t ''logsig'' or ''tansig''');
+                error('foo:bar','Unknown sigmoid-type function:\nFunction options:\t ''logsig'' or ''tansig''');
             end
            
             if lb == ub % no approximation need
@@ -407,7 +407,7 @@ classdef Sigmoid
             end
         end
         
-        function Z = stepSigmoid_zono(I, i, func)
+        function R = stepSigmoid_zono(I, i, func)
             % @I: intermediate input set
             
             if ~isa(I, 'Zonotope')
@@ -426,20 +426,17 @@ classdef Sigmoid
                 dyl = logsig('dn', lb); % y'(1): derivative at lower bound
                 dyu = logsig('dn', ub); % y'(u): derivative at upper bound
             else
-                error('foo:bar','Unknown function type:\nFunction options:\t ''logsig'' or ''tansig''');
+                error('foo:bar','Unknown sigmoid-type function:\nFunction options:\t ''logsig'' or ''tansig''');
             end
 
-            if lb == ub
+            if lb = ub
                 X = I.X;
                 c = I.c;
               
                 X(i,:) = 0;
                 c(i) = yl;
-                Z = Zonotope(c, X);
-            else
-                X = I.X;
-                c = I.c;
-                
+                R = Zonotope(c, X);
+            else 
                 lamda = min(dyl, dyu);
                 mu1 = 0.5 * (yu + yl - lamda*(yu + yl));
                 mu2 = 0.5 * (yu - yl - lamda*(yu - yl));
@@ -449,7 +446,7 @@ classdef Sigmoid
                 new_x = zeros(I.Dim,1);
                 new_x(i) = mu2;
                 X = [X new_x];
-                Z = Zonotope(c,X);
+                R = Zonotope(c,X);
             end
         end
     end

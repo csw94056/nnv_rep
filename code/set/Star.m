@@ -50,7 +50,7 @@ classdef Star
                     end
 
                     if md ~= 1
-                        error('constraint vector should have one column');
+                        error('constraint vector should be one column');
                     end
                     
                     obj.V = V;
