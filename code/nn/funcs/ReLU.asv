@@ -661,19 +661,20 @@
                 upper_a(i+1) = 1;
                 upper_a = [I.upper_a; upper_a];
                 
-                lb = [I.lb; lb];
-                ub = [I.ub; ub];
+                lb = [I.lb; I.lb(n)];
+                ub = [I.ub; I.ub(n)];
                 
                 R = DeepPoly(lower_a, upper_a, lb, ub);
             elseif ub <= 0
                 lower_a = [I.lower_a; zeros(1, I.Dim)];
                 upper_a = [I.upper_a; zeros(1, I.Dim)];
-                lb = [I.lb; zeros(1, I.Dim + 1)];
-                ub = [I.ub; zeros(1, I.Dim + 1)];
+                lb = [I.lb; zeros(1, ];
+                ub = [I.ub; 0];
                 R = DeepPoly(lower_a, upper_a, lb, ub);
             else % lb < 0 && ub > 0
                 
                 if ub <= -lb
+                    disp('case 1')
                     lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
 
                     %ub*(I.upper_a(n,i) - lb)/(ub - lb)
@@ -683,9 +684,10 @@
                     upper_a = [I.upper_a; upper_a];
                     
                     lb = [I.lb; 0];
-                    ub = [I.ub; ub];
+                    ub = [I.ub; I.ub(n)];
                     R = DeepPoly(lower_a, upper_a, lb, ub);
                 else
+                    disp('case 2')
                     lower_a = [I.lower_a; I.lower_a(n)];
                     
                     upper_a = zeros(1, I.Dim + 1);
@@ -693,8 +695,8 @@
                     upper_a(i+1) = ub/(ub - lb);
                     upper_a = [I.upper_a; upper_a];
                     
-                    lb = [I.lb; lb];
-                    ub = [I.ub; ub];
+                    lb = [I.lb; I.lb(n)];
+                    ub = [I.ub; I.ub(n)];
                     R = DeepPoly(lower_a, upper_a, lb, ub);
                 end
             end

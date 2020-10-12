@@ -51,7 +51,7 @@ classdef Zonotope
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% end switch    
             end
         end
-            
+        
         function Z = affineMap(varargin)
             switch nargin
                 case 3
@@ -64,7 +64,23 @@ classdef Zonotope
                     b = [];
             end
             
-            c = W * obj.c + b;
+            [nW, mW] = size(W);
+            [nb, mb] = size(b);
+            
+            if mW ~= obj.Dim
+                error('Inconsistency between affine transformation mattrix and object dimension');
+            end
+            
+            if mb > 1
+                error('bias vector must have one column');
+            end
+            
+            if mb ~= 0
+                c = W * obj.c + b;
+            else
+                c = W * obj.c;
+            end
+            
             X = W * obj.X;
             Z = Zonotope(c, X);
         end

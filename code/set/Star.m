@@ -12,9 +12,9 @@ classdef Star
         function obj = Star(varargin)
             switch nargin
                 case 0 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 0
-                    obj.V = 0;
-                    obj.C = 0;
-                    obj.d = 0;
+                    obj.V = [];
+                    obj.C = [];
+                    obj.d = [];
                     obj.Dim = 0;
                 case 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 1
                     P = varargin{1};
@@ -74,20 +74,33 @@ classdef Star
         end
             
         function S = affineMap(varargin)
+            b = [];
             switch nargin
                 case 3
                     obj = varargin{1};
                     W = varargin{2};
                     b = varargin{3};
-                    V = W * obj.V ;
-                    V(:, 1) = V(:, 1) + b;
-                    S = Star(V, obj.C, obj.d);
                 case 2
                     obj = varargin{1};
                     W = varargin{2};
-                    V = W * obj.V;
-                    S = Star(V, obj.C, obj.d);
             end
+            
+            [nW, mW] = size(W);
+            [nb, mb] = size(b);
+            
+            if mW ~= obj.Dim
+                error('Inconsistency between affine transformation mattrix and object dimension');
+            end
+            
+            if mb > 1
+                error('bias vector must have one column');
+            end
+
+            V = W * obj.V ;
+            if mb ~= 0
+                V(:, 1) = V(:, 1) + b;
+            end
+            S = Star(V, obj.C, obj.d);
         end
         
         function [lb, ub] = getRanges(obj)
@@ -97,17 +110,8 @@ classdef Star
             ub = P.Internal.ub;
         end
         
-        function A = A(obj)
-           A = obj.C; 
-        end
-        
-        function b = b(obj)
-            b = obj.d;
-        end
-        
         function V = get_V(obj)
-            obj_V = obj.V;
-            V = obj_V(:,2:size(obj.V,2));
+            V = obj.V(:,2:size(obj.V,2));
         end
         
         function c = get_c(obj)
