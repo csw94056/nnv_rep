@@ -185,6 +185,11 @@ classdef DeepPoly
             D = DeepPoly(lower_a, upper_a, lb, ub); 
         end
         
+        function D = backSub(obj)
+           % back substitution for affine transformer for precise bounds 
+            
+        end
+        
         function P = toPolyhedron(obj)
             P = Polyhedron('A', [obj.A], 'b', [obj.b]);
         end

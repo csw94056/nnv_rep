@@ -615,7 +615,7 @@
 
                     %ub*(I.upper_a(n,i) - lb)/(ub - lb)
                     upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub*lb/(ub - lb)
+                    upper_a(1) = -ub*lb/(ub - lb);
                     upper_a(i) = ub/(ub - lb);
                     upper_a = [I.upper_a; upper_a];
                     
@@ -626,7 +626,7 @@
                     lower_a = [I.lower_a; I.lower_a(n)];
                     
                     upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub/(ub - lb)
+                    upper_a(1) = -ub/(ub - lb);
                     upper_a(i) = ub/(ub - lb);
                     upper_a = [I.upper_a; upper_a];
                     
@@ -678,7 +678,7 @@
 
                     %ub*(I.upper_a(n,i) - lb)/(ub - lb)
                     upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub*lb/(ub - lb)
+                    upper_a(1) = -ub*lb/(ub - lb);
                     upper_a(i+1) = ub/(ub - lb);
                     upper_a = [I.upper_a; upper_a];
                     
