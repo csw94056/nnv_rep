@@ -1,16 +1,19 @@
-classdef DeepPoly
+classdef RelaxedPoly
     properties
         V = []; % c (center vector) and X (a set of basic vectors)
         lower_a = []; % matrix for lower polyhedral constraint (a[<=]) ((1 a[1] a[2] ... a[n])'
         upper_a = []; % matrix for upper polyhedral constraint (a[>=])
         lb = []; % matrix for lower bound
         ub = []; % matrix for upper bound
-        Dim = 0;
+        
+        lb_back = []; %lower bound for back substitution
+        ub_back = []; %upper bound for back substitution
+        Dim = []; % dimension of each layer
         n = 0; % number of variables of each nodes
     end
     
     methods
-        function obj = DeepPoly(varargin)
+        function obj = RelaxedPoly(varargin)
             switch nargin
                 case 0
                 case 1
@@ -127,7 +130,7 @@ classdef DeepPoly
                 end
             end
             %}
-            D = DeepPoly(V, lower_a, upper_a, lb, ub); 
+            D = RelaxedPoly(V, lower_a, upper_a, lb, ub); 
         end
         
         function D = affineMap2(varargin)
@@ -155,43 +158,81 @@ classdef DeepPoly
             
 %             lower_a = [zeros(obj.Dim,1) W*obj.lower_a(end - obj.Dim + 1: end, 2:end)];
 %             upper_a = [zeros(obj.Dim,1) W*obj.upper_a(end - obj.Dim + 1: end, 2:end)];
-            lower_a = [zeros(obj.Dim,1) W*eye(obj.Dim)];
-            upper_a = [zeros(obj.Dim,1) W*eye(obj.Dim)];
 
+%             lower_a = [zeros(obj.Dim,1) W*eye(obj.Dim)];
+%             upper_a = [zeros(obj.Dim,1) W*eye(obj.Dim)];
+            if mb ~= 0
+                lower_a = [b W];
+                upper_a = [b W];
+            else
+                lower_a = [zeros(obj.Dim, 1) W];
+                upper_a = [zeros(obj.Dim, 1) W]; 
+            end
             lower_a = [obj.lower_a; lower_a];
             upper_a = [obj.upper_a; upper_a];
+
             
             n = size(obj.lb,1) - obj.Dim + 1;
             
-%             lb = -abs(W) * obj.lb(n:end);
-%             ub = abs(W) * obj.ub(n:end);
-            lb = zeros(obj.Dim, 1);
-            ub = zeros(obj.Dim, 1);
+
+            lb1 = zeros(obj.Dim, 1);
+            ub1 = zeros(obj.Dim, 1);
             for i = 1:nW
                 for j = 1:mW
                    if W(i,j) >= 0
-                       lb(i) = lb(i) + W(i,j) * obj.lb(end - obj.Dim + j);
-                       ub(i) = ub(i) + W(i,j) * obj.ub(end - obj.Dim + j);
+                       lb1(i) = lb1(i) + W(i,j) * obj.lb(end - obj.Dim + j);
+                       ub1(i) = ub1(i) + W(i,j) * obj.ub(end - obj.Dim + j);
                    else
-                       ub(i) = ub(i) + W(i,j) * obj.lb(end - obj.Dim + j);
-                       lb(i) = lb(i) + W(i,j) * obj.ub(end - obj.Dim + j);
+                       ub1(i) = ub1(i) + W(i,j) * obj.lb(end - obj.Dim + j);
+                       lb1(i) = lb1(i) + W(i,j) * obj.ub(end - obj.Dim + j);
                    end
                 end
             end
+            %{
+            ub1 = ub1
+            lb1 = lb1
+            ub2 = obj.backSubs(upper_a)
+            lb2 = obj.backSubs(lower_a)
+            
+            ub = zeros(obj.Dim, 1);
+            lb = zeros(obj.Dim, 1);
+            for i = 1:obj.Dim
+                if ub1(i) > ub2(i)
+                    check_ub1_i = ub1(i)
+                    check_ub2_i = ub2(i)
+                    ub(i) = ub1(i);
+                else
+                    check_ub1_i = ub1(i)
+                    check_ub2_i = ub2(i)
+                    ub(i) = ub2(i);
+                end
+                if lb1(i) > lb2(i)
+                    lb(i) = lb2(i);
+                else
+                    lb(i) = lb1(i);
+                end
+            end
+            %}
+            
+            ub = ub
+            lb = lb
+            
             
             lb = [obj.lb; lb];
             ub = [obj.ub; ub];
             
-            D = DeepPoly(lower_a, upper_a, lb, ub); 
+            D = RelaxedPoly(lower_a, upper_a, lb, ub); 
         end
         
-        function D = backSub(obj)
-           % back substitution for affine transformer for precise bounds 
-            
-        end
-        
-        function P = toPolyhedron(obj)
-            P = Polyhedron('A', [obj.A], 'b', [obj.b]);
+        function bound = backSubs(obj,a)
+            % back substitution for affine transformer for precise bounds 
+            if ~isempty(a)
+                alpha = a(end - obj.Dim + 1 : end, 2 : end);
+                beta = a(end - obj.Dim + 1 : end,1);
+                bound = a(end - obj.Dim + 1 : end, 2 : end) * obj.backSubs( a(1 : end-obj.Dim,:) ) + a(end - obj.Dim + 1 : end,1)
+            else
+                bound = ones(obj.Dim, 1)
+            end
         end
         
         function [lb,ub] = getRange(obj, i)

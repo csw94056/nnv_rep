@@ -549,8 +549,8 @@
             end 
         end
         
-        %% DeepPoly
-        function R = approxStepReLU_deeppoly(I, i)
+        %% Relaxed Polyhedron
+        function R = approxStepReLU_rlxpoly(I, i)
             % Zonotope approximation with decreasing function of lamda
             % I: intermediate input set
             % i: index of current neuron
@@ -558,8 +558,8 @@
             % ub: upper-bound of x[i]
             % R: intermediate output set    
             
-            if ~isa(I, 'DeepPoly')
-                error('Input set is not a DeepPoly object');
+            if ~isa(I, 'RelaxedPoly')
+                error('Input set is not a RelaxedPoly object');
             end
             
             [lb,ub] = I.getRange(i);
@@ -584,7 +584,7 @@
             end
         end
         
-        function R = approxMultiStepReLU_deeppoly(I)
+        function R = approxMultiStepReLU_rlxpoly(I)
             % Zonotope approximation with decreasing function of lamda
             % I: intermediate input set
             % i: index of current neuron
@@ -592,8 +592,8 @@
             % ub: upper-bound of x[i]
             % R: intermediate output set    
             
-            if ~isa(I, 'DeepPoly')
-                error('Input set is not a DeepPoly object');
+            if ~isa(I, 'RelaxedPoly')
+                error('Input set is not a RelaxedPoly object');
             end
             
             %n = size(I.lower_a,1) - I.Dim + i
@@ -607,7 +607,7 @@
                 upper_a = [I.upper_a; zeros(1, I.Dim)];
                 lb = [I.lb; 0];
                 ub = [I.ub; 0];
-                R = DeepPoly(lower_a, upper_a, lb, ub);
+                R = RelaxedPoly(lower_a, upper_a, lb, ub);
             else % lb < 0 && ub > 0
                 
                 if ub <= -lb
@@ -632,12 +632,12 @@
                     
                     lb = [I.lb; I.lb(n)];
                     ub = [I.ub; I.ub(n)];
-                    R = DeepPoly(lower_a, upper_a, lb, ub);
+                    R = RelaxedPoly(lower_a, upper_a, lb, ub);
                 end
             end
         end
         
-        function R = approxSingleStepReLU_deeppoly(I, i)
+        function R = approxSingleStepReLU_rlxpoly(I, i)
             % Zonotope approximation with decreasing function of lamda
             % I: intermediate input set
             % i: index of current neuron
@@ -645,8 +645,8 @@
             % ub: upper-bound of x[i]
             % R: intermediate output set    
             
-            if ~isa(I, 'DeepPoly')
-                error('Input set is not a DeepPoly object');
+            if ~isa(I, 'RelaxedPoly')
+                error('Input set is not a RelaxedPoly object');
             end
             
             n = size(I.lower_a,1) - I.Dim + 1;
@@ -664,13 +664,13 @@
                 lb = [I.lb; lb];
                 ub = [I.ub; ub];
                 
-                R = DeepPoly(lower_a, upper_a, lb, ub);
+                R = RelaxedPoly(lower_a, upper_a, lb, ub);
             elseif ub <= 0
                 lower_a = [I.lower_a; zeros(1, I.Dim)];
                 upper_a = [I.upper_a; zeros(1, I.Dim)];
                 lb = [I.lb; zeros(1, I.Dim + 1)];
                 ub = [I.ub; zeros(1, I.Dim + 1)];
-                R = DeepPoly(lower_a, upper_a, lb, ub);
+                R = RelaxedPoly(lower_a, upper_a, lb, ub);
             else % lb < 0 && ub > 0
                 
                 if ub <= -lb
@@ -684,7 +684,7 @@
                     
                     lb = [I.lb; 0];
                     ub = [I.ub; ub];
-                    R = DeepPoly(lower_a, upper_a, lb, ub);
+                    R = RelaxedPoly(lower_a, upper_a, lb, ub);
                 else
                     lower_a = [I.lower_a; I.lower_a(n)];
                     
@@ -695,7 +695,7 @@
                     
                     lb = [I.lb; lb];
                     ub = [I.ub; ub];
-                    R = DeepPoly(lower_a, upper_a, lb, ub);
+                    R = RelaxedPoly(lower_a, upper_a, lb, ub);
                 end
             end
         end
