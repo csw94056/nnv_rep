@@ -415,7 +415,13 @@
                     elseif ~a && b
                         R1 = Z1;
                     elseif ~a && ~b 
-                        R1 = [Z1 Z2];
+                        P1 = Z1.toPolyhedron;
+                        P2 = Z2.toPolyhedron;
+                        if P1 >= P2
+                            R1 = Z1;
+                        else
+                            R1 = [Z1 Z2];
+                        end
                     else
                         R1 = [];
                     end
@@ -650,7 +656,7 @@
             end
             
             n = size(I.lower_a,1) - I.Dim + 1;
-            [lb,ub] = I.getRange(n)
+            [lb,ub] = I.getRange(n);
 
             if lb >= 0
                 lower_a = zeros(1, I.Dim + 1);

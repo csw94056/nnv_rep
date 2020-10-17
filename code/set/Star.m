@@ -111,7 +111,8 @@ classdef Star
         end
         
         function V = get_V(obj)
-            V = obj.V(:,2:size(obj.V,2));
+            %V = obj.V(:,2:size(obj.V,2));
+            V = obj.V(:, 2:end);
         end
         
         function c = get_c(obj)
@@ -161,9 +162,9 @@ classdef Star
             new_C = [obj1.C; C1];
             new_d = [obj1.d; d1];
             S = Star(obj1.V, new_C, new_d);     
-            %if isEmptySet(S)
-            %    S = [];
-            %end
+            if isEmptySet(S)
+                S = [];
+            end
         end
             
             

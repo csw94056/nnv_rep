@@ -133,7 +133,7 @@ classdef RelaxedPoly
             D = RelaxedPoly(V, lower_a, upper_a, lb, ub); 
         end
         
-        function D = affineMap2(varargin)
+        function D = affineMap2_save(varargin)
             b = [];
             switch nargin
                 case 3
@@ -188,11 +188,12 @@ classdef RelaxedPoly
                    end
                 end
             end
-            %{
-            ub1 = ub1
-            lb1 = lb1
+            %lb = lb1;
+            
+            %ub1 = ub1
+            %lb1 = lb1
             ub2 = obj.backSubs(upper_a)
-            lb2 = obj.backSubs(lower_a)
+            %lb2 = obj.backSubs(lower_a)
             
             ub = zeros(obj.Dim, 1);
             lb = zeros(obj.Dim, 1);
@@ -206,11 +207,13 @@ classdef RelaxedPoly
                     check_ub2_i = ub2(i)
                     ub(i) = ub2(i);
                 end
+                %{
                 if lb1(i) > lb2(i)
                     lb(i) = lb2(i);
                 else
                     lb(i) = lb1(i);
                 end
+                %}
             end
             %}
             
@@ -222,6 +225,85 @@ classdef RelaxedPoly
             ub = [obj.ub; ub];
             
             D = RelaxedPoly(lower_a, upper_a, lb, ub); 
+        end
+        
+        function D = affineMap2(varargin)
+            b = [];
+            switch nargin
+                case 3
+                    obj = varargin{1};
+                    W = varargin{2};
+                    b = varargin{3};
+                case 2
+                    obj = varargin{1};
+                    W = varargin{2};
+            end
+            
+            [nW, mW] = size(W);
+            [nb, mb] = size(b);
+            
+            if mW ~= obj.Dim
+                error('Inconsistency between affine transformation mattrix and object dimension');
+            end
+            
+            if mb > 1
+                error('bias vector must have one column');
+            end
+
+            if mb ~= 0
+                lower_a = [b W];
+                upper_a = [b W];
+            else
+                lower_a = [zeros(obj.Dim, 1) W];
+                upper_a = [zeros(obj.Dim, 1) W]; 
+            end
+            lower_a = [obj.lower_a; lower_a];
+            upper_a = [obj.upper_a; upper_a];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            lb = lb_backSubs(obj);
+            ub = ub_backSubs(obj);
+            
+            lb = [obj.lb; lb];
+            ub = [obj.ub; ub];
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           
+            D = RelaxedPoly(lower_a, upper_a, lb, ub); 
+        end
+        
+        function min_b = min_backSubs(obj, a)
+            if ~isempty(a)
+                disp('min_b')
+                check_a = a
+                alpha = min(a(end - obj.Dim + 1 : end, 2 : end),0)
+                beta =  a(end - obj.Dim + 1 : end,1)
+                min_b = min(a(end - obj.Dim + 1 : end, 2 : end),0) * obj.min_backSubs( a(1 : end-obj.Dim,:) ) + a(end - obj.Dim + 1 : end,1)
+            else
+                alpha = ones(obj.Dim, 1)
+                min_b = ones(obj.Dim, 1);
+            end
+        end
+        
+        function max_b = max_backSubs(obj, a)
+            if ~isempty(a)
+                disp('max_b')
+                check_a = a
+                alpha = max(0,a(end - obj.Dim + 1 : end, 2 : end))
+                beta = a(end - obj.Dim + 1 : end,1)
+                max_b = max(0,a(end - obj.Dim + 1 : end, 2 : end)) * obj.max_backSubs( a(1 : end-obj.Dim,:) ) + a(end - obj.Dim + 1 : end,1)
+            else
+                alpha = ones(obj.Dim, 1)
+                max_b = ones(obj.Dim, 1);
+            end
+        end
+        
+        function lb = lb_backSubs(obj)
+            disp('lb_backSubs')
+            lb = -obj.max_backSubs(obj.upper_a) + obj.min_backSubs(obj.lower_a)
+        end
+        
+        function ub = ub_backSubs(obj)
+            disp('ub_backSubs')
+            ub = obj.max_backSubs(obj.upper_a) - obj.min_backSubs(obj.lower_a)
         end
         
         function bound = backSubs(obj,a)
