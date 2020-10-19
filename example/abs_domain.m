@@ -3,19 +3,6 @@ close all;
 clear;
 clc;
 
-%P = ExamplePoly.randHrep('d', 2);
-%D = DeepPoly(P);
-%R = ReLU.approxStepReLU_deeppoly(D);
-
-%{
-W{1} = [1 1; 1 -1];
-W{2} = [1 1; 1 -1];
-W{3} = [1 1; 0 1];
-%}
-
-%P = Polyhedron('ub', [1;1], 'lb', [-1;-1]);
-%P1 = P.affineMap(W{1});
-
 W1 = [1 1; 1 -1];
 W2 = [1 1; 1 -1];
 W3 = [1 1; 0 1];
@@ -61,6 +48,7 @@ D3_upper_a = D3.upper_a
 D3_lb = D3.lb
 
 % D3.ub(end - 1) = 3;
+%D3.ub(end - 1: end, 1) = D3.ub(end - 1: end, 1) + [0.5; 0.5];
 D3_ub = D3.ub
 
 D4 = D3;
@@ -79,6 +67,7 @@ D5 = D4.affineMap2(W3, b3);
 D5_lower_a = D5.lower_a 
 D5_upper_a = D5.upper_a
 D5_lb = D5.lb
+%D5.ub(end - 1: end, 1) = D5.ub(end - 1: end, 1) + [0.5; 0.5];
 D5_ub = D5.ub
 
 %{
