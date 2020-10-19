@@ -1,6 +1,7 @@
 classdef RelaxedPoly
     properties
         V = []; % c (center vector) and X (a set of basic vectors)
+        v = []; % inputs (the outputs of the neurons in the previous layers)
         lower_a = []; % matrix for lower polyhedral constraint (a[<=]) ((1 a[1] a[2] ... a[n])'
         upper_a = []; % matrix for upper polyhedral constraint (a[>=])
         lb = []; % matrix for lower bound
@@ -261,6 +262,9 @@ classdef RelaxedPoly
             upper_a = [obj.upper_a; upper_a];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            obj.lower_a = lower_a;
+            obj.upper_a = upper_a;
+            
             lb = lb_backSubs(obj);
             ub = ub_backSubs(obj);
             
@@ -271,39 +275,50 @@ classdef RelaxedPoly
         end
         
         function min_b = min_backSubs(obj, a)
-            if ~isempty(a)
+            %if ~isempty(a)
+            [na, ma] = size(a);
+            if na > 2
                 disp('min_b')
                 check_a = a
                 alpha = min(a(end - obj.Dim + 1 : end, 2 : end),0)
                 beta =  a(end - obj.Dim + 1 : end,1)
                 min_b = min(a(end - obj.Dim + 1 : end, 2 : end),0) * obj.min_backSubs( a(1 : end-obj.Dim,:) ) + a(end - obj.Dim + 1 : end,1)
             else
-                alpha = ones(obj.Dim, 1)
-                min_b = ones(obj.Dim, 1);
+                min_b = a(end - obj.Dim + 1 : end, 2 : end)*ones(obj.Dim, 1)
             end
+%             else
+%                 alpha = ones(obj.Dim, 1)
+%                 min_b = ones(obj.Dim, 1);
+%             end
         end
         
         function max_b = max_backSubs(obj, a)
-            if ~isempty(a)
+            %if ~isempty(a)
+            [na, ma] = size(a);
+            if na > 2
                 disp('max_b')
                 check_a = a
                 alpha = max(0,a(end - obj.Dim + 1 : end, 2 : end))
                 beta = a(end - obj.Dim + 1 : end,1)
                 max_b = max(0,a(end - obj.Dim + 1 : end, 2 : end)) * obj.max_backSubs( a(1 : end-obj.Dim,:) ) + a(end - obj.Dim + 1 : end,1)
             else
-                alpha = ones(obj.Dim, 1)
-                max_b = ones(obj.Dim, 1);
+                max_b = a(end - obj.Dim + 1 : end, 2 : end)*ones(obj.Dim, 1)
             end
+                
+%             else
+%                 alpha = ones(obj.Dim, 1)
+%                 max_b = ones(obj.Dim, 1);
+%             end
         end
         
         function lb = lb_backSubs(obj)
             disp('lb_backSubs')
-            lb = -obj.max_backSubs(obj.upper_a) + obj.min_backSubs(obj.lower_a)
+            lb = obj.max_backSubs(obj.lower_a) + obj.min_backSubs(obj.upper_a)
         end
         
         function ub = ub_backSubs(obj)
             disp('ub_backSubs')
-            ub = obj.max_backSubs(obj.upper_a) - obj.min_backSubs(obj.lower_a)
+            ub = obj.max_backSubs(obj.upper_a) + obj.min_backSubs(obj.lower_a)
         end
         
         function bound = backSubs(obj,a)
