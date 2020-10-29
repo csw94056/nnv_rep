@@ -113,9 +113,9 @@ classdef Zonotope
             P = P1.affineMap(obj.X) + obj.c;
             %}
 
-            n = size(obj.X, 2);
-            A = [eye(n); -eye(n)];
-            b = ones(2*n,1);
+            m = size(obj.X, 2);
+            A = [eye(m); -eye(m)];
+            b = ones(2*m,1);
             P1 = Polyhedron('A', A, 'b', b);
             P = obj.X*P1 + obj.c;
         end

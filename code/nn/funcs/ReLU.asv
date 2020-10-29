@@ -118,7 +118,7 @@
             if isa(I1, 'Polyhedron')
                 R = ReLU.approxReLU_poly(I1);
             elseif isa(I1, 'Star')
-                if strcmp(method, 'approx')
+                if strcmp(method, 'exact')
                     R = ReLU.approxReachReLU_star(I1);
                 elseif strcmp(method, 'zono')
                     R = ReLU.zonoApproxReachReLU_star(I1);
@@ -696,16 +696,15 @@
             elseif ub <= 0
                 lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
                 upper_a = [I.upper_a; zeros(1, I.Dim + 1)];
-                
                 lb = [I.lb; 0];
                 ub = [I.ub; 0];
                 nVar = [I.nVar; I.nVar(end)];
-                
-                R = RelaxedPoly(I.c, I.X, lower_a, upper_a, lb, ub, nVar);
+                R = RelaxedPoly(I.v, lower_a, upper_a, lb, ub, nVar);
             else % lb < 0 && ub > 0
                 if ub <= -lb
                     lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
-                    
+
+                    %ub*(I.upper_a(n,i) - lb)/(ub - lb)
                     upper_a = zeros(1, I.Dim + 1);
                     upper_a(1) = -ub*lb/(ub - lb);
                     upper_a(i+1) = ub/(ub - lb);
@@ -731,6 +730,9 @@
                     
                     R = RelaxedPoly(I.c, I.X, lower_a, upper_a, lb, ub, nVar);
                 end
+            end
+            if isempty(lb) || isempty(ub)
+                error('lower or upper bound is empty')
             end
         end
         
