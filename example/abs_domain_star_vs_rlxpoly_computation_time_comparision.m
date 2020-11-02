@@ -4,7 +4,7 @@ clc;
 
 %% computing reachable set of a relu network
 dim = 2;
-n_dim = 10;
+n_dim = 30;
 out_dim = 2;
 
 iter = inf; %number of iteration for Relaxed Polyhedron
@@ -43,7 +43,7 @@ for i = dim : n_dim
     hold off
     legend('abs-dom Star', 'RlxPoly', 'RlxStar');
 end
-title('the reachability time vs. the dimension of a hidden layer');
+title('the reachability time vs. the dimension of a hidden layer in [2 n 2] network');
 ylabel('verification time (sec)');
 xlabel('dimension of a hidden layer');
 
@@ -76,6 +76,6 @@ for i=dim:n_dim
     hold off
     legend('abs-dom Star', 'RlxPoly', 'RlxStar');
 end
-title('the reachability time vs. the dimension of a hidden layer');
+title('the reachability time vs. the dimension of hidden layers in [2 n n n 2] network');
 ylabel('verification time (sec)');
 xlabel('dimension of a hidden layer');
