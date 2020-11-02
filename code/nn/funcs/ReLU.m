@@ -72,6 +72,8 @@
                     I1 = I(i).affineMap(W, b);
                 elseif isa(I(i), 'Zonotope')
                     I1 = I(i).affineMap(W, b);
+                elseif isa(I(i), 'RlxPoly')
+                    I1 = I(i).affineMap(W, b);
                 else
                     error('Unrecognized input set');
                 end
@@ -130,7 +132,11 @@
             elseif isa(I1, 'Zonotope')
                 R = ReLU.approxReachReLU_zono(I1);
             elseif isa(I1, 'RelaxedPoly')
+                R = ReLU.approxReachReLU_relaxedpoly(I1);
+            elseif isa(I1, 'RlxPoly')
                 R = ReLU.approxReachReLU_rlxpoly(I1);
+            elseif isa(I1, 'RlxStar')
+                R = ReLU.approxReachReLU_rlxstar(I1);
             else 
                 error('Unrecognized input set/method for over-approximation ReLU');
             end
@@ -560,8 +566,255 @@
             end 
         end
         
+        %% Relaxed Star
+        function R = approxReachReLU_rlxstar(I)
+            % @IL intermediate input set
+            if ~isa(I, 'RlxStar')
+                error('Input set is not a RlxStar object');
+            end
+            
+            % create new lower and upper constraints and bounds.
+            lower_a = I.lower_a;
+            upper_a = I.upper_a;
+            lb = I.lb;
+            ub = I.ub;
+            len = length(lower_a);
+            if len < I.iter
+                lower_a{len+1} = zeros(I.Dim, I.Dim + 1);
+                upper_a{len+1} = zeros(I.Dim, I.Dim + 1);
+                lb{len+1} = zeros(I.Dim, 1);
+                ub{len+1} = zeros(I.Dim, 1);
+            else
+                lower_a = lower_a{2:end};
+                upper_a = upper_a{2:end};
+                lb = lb{2:end};
+                ub = ub{2:end};
+                
+                lower_a{len} = zeros(I.Dim, I.Dim + 1);
+                upper_a{len} = zeros(I.Dim, I.Dim + 1);
+                lb{len} = zeros(I.Dim, 1);
+                ub{len} = zeros(I.Dim, 1);
+                len = len - 1;
+            end
+            In = RlxStar(I.V, I.C, I.d, lower_a, upper_a, lb, ub, I.iter);
+            
+            for i=1:I.Dim
+                In = ReLU.approxSingleStepReLU_rlxstar(In,i,lb{len}(i),ub{len}(i));        
+            end
+            R = In;
+        end
+        
+        function R = approxSingleStepReLU_rlxstar(I, i, l, u)
+            % Zonotope approximation with decreasing function of lamda
+            % I: intermediate input set
+            % i: index of current neuron
+            % lb: lower-bound of x[i]
+            % ub: upper-bound of x[i]
+            % R: intermediate output set    
+            
+            if ~isa(I, 'RlxStar')
+                error('Input set is not a RlxStar object');
+            end
+            
+            lower_a = I.lower_a;
+            upper_a = I.upper_a;
+            lb = I.lb;
+            ub = I.ub;
+            len = length(lower_a);
+            
+            if l >= 0
+                L = zeros(1, I.Dim + 1);
+                L(i+1) = 1;
+                lower_a{len}(i,:) = L;
+                
+                U = zeros(1, I.Dim + 1);
+                U(i+1) = 1;
+                upper_a{len}(i,:) = U;
+                
+                lb{len}(i) = l;
+                ub{len}(i) = u;
+
+                R = RlxStar(I.V, I.C, I.d, lower_a, upper_a, lb, ub, I.iter);
+            elseif u <= 0
+                new_V = I.V;
+                new_V(i,:) = 0;
+                
+                lower_a{len}(i,:) = zeros(1, I.Dim + 1);
+                upper_a{len}(i,:) = zeros(1, I.Dim + 1);
+                
+                lb{len}(i) = 0;
+                ub{len}(i) = 0;
+
+                R = RlxStar(new_V, I.C, I.d, lower_a, upper_a, lb, ub, I.iter);
+            else % lb < 0 && ub > 0
+                % y[i] = ReLU(x[i]) = a[m+1]
+                X = I.get_X;
+                c = I.get_c;
+                
+                new_V = I.V;
+                new_V(i,:) = 0;
+                e = zeros(I.Dim,1);
+                e(i,1) = 1;
+                new_V = [new_V e];
+                
+                C0 = [I.C zeros(size(I.C,1),1)];
+                d0 = I.d;
+                
+                % constraint 1: y[i] <= ub(x[i]-lb)/(ub-lb)
+                C1 = [-u*X(i,:)/(u-l) 1];
+                d1 = u*(c(i)-l)/(u-l);       
+                
+                if u <= -l
+                    % constraint 2: y[i] >= 0
+                    m = size(I.C,2);
+                    C2 = [zeros(1,m) -1];
+                    d2 = 0;
+                    
+                    lower_a{len}(i,:) = zeros(1, I.Dim + 1);
+                    
+                    U = zeros(1, I.Dim + 1);
+                    U(1) = -u*l/(u - l);
+                    U(i+1) = u/(u - l);
+                    upper_a{len}(i,:) = U;
+                    
+                    lb{len}(i) = 0;
+                    ub{len}(i) = u;
+                else
+                    % constraint 2: y[i] >= x[i]
+                    C2 = [X(i,:) -1];
+                    d2 = -c(i);
+                    
+                    L = zeros(1, I.Dim + 1);
+                    L(i+1) = 1;
+                    lower_a{len}(i,:) = L;
+                    
+                    U = zeros(1, I.Dim + 1);
+                    U(1) = -u/(u - l);
+                    U(i+1) = u/(u - l);
+                    upper_a{len}(i,:) = U;
+                    
+                    lb{len}(i) = l;
+                    ub{len}(i) = u;
+                end
+                
+                new_C = [C0; C1; C2];
+                new_d = [d0; d1; d2];
+                
+                R = RlxStar(new_V, new_C, new_d, lower_a, upper_a, lb, ub, I.iter);
+            end
+        end
+        
+        
         %% Relaxed Polyhedron
         function R = approxReachReLU_rlxpoly(I)
+            % @IL intermediate input set
+            if ~isa(I, 'RlxPoly')
+                error('Input set is not a RlxPoly object');
+            end
+            
+            % create new lower and upper constraints and bounds.
+            lower_a = I.lower_a;
+            upper_a = I.upper_a;
+            lb = I.lb;
+            ub = I.ub;
+            len = length(lower_a);
+            
+            lower_a{len+1} = zeros(I.Dim, I.Dim + 1);
+            upper_a{len+1} = zeros(I.Dim, I.Dim + 1);
+            lb{len+1} = zeros(I.Dim, 1);
+            ub{len+1} = zeros(I.Dim, 1);
+       
+% %             if len + 1 > I.iter
+% %                 lower_a = {lower_a{2:end}};
+% %                 upper_a = {upper_a{2:end}};
+% %                 lb = {lb{2:end}};
+% %                 ub = {ub{2:end}};
+% %                 len = len - 1;
+% %             end
+               
+            In = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
+            
+            for i=1:I.Dim
+                In = ReLU.approxSingleStepReLU_rlxpoly(In,i,lb{len}(i),ub{len}(i));        
+            end
+%             len = length(In.lower_a);
+%             if len + 1 > In.iter
+%                 R = RlxPoly({In.lower_a{2:end}}, {In.upper_a{2:end}}, {In.lb{2:end}}, {In.ub{2:end}}, In.iter);
+%             else
+                R = In;
+%             end
+        end
+        
+        function R = approxSingleStepReLU_rlxpoly(I, i, l, u)
+            % Zonotope approximation with decreasing function of lamda
+            % I: intermediate input set
+            % i: index of current neuron
+            % lb: lower-bound of x[i]
+            % ub: upper-bound of x[i]
+            % R: intermediate output set    
+            
+            if ~isa(I, 'RlxPoly')
+                error('Input set is not a RlxPoly object');
+            end
+            
+            lower_a = I.lower_a;
+            upper_a = I.upper_a;
+            lb = I.lb;
+            ub = I.ub;
+            len = length(lower_a);
+            if l >= 0
+                L = zeros(1, I.Dim + 1);
+                L(i+1) = 1;
+                lower_a{len}(i,:) = L;
+                
+                U = zeros(1, I.Dim + 1);
+                U(i+1) = 1;
+                upper_a{len}(i,:) = U;
+                
+                lb{len}(i) = l;
+                ub{len}(i) = u;
+
+                R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
+            elseif u <= 0
+                lower_a{len}(i,:) = zeros(1, I.Dim + 1);
+                upper_a{len}(i,:) = zeros(1, I.Dim + 1);
+                
+                lb{len}(i) = 0;
+                ub{len}(i) = 0;
+
+                R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
+            else % lb < 0 && ub > 0
+                if u <= -l
+                    lower_a{len}(i,:) = zeros(1, I.Dim + 1);
+                    
+                    U = zeros(1, I.Dim + 1);
+                    U(1) = -u*l/(u - l);
+                    U(i+1) = u/(u - l);
+                    upper_a{len}(i,:) = U;
+                    
+                    lb{len}(i) = 0;
+                    ub{len}(i) = u;
+                    
+                    R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
+                else
+                    L = zeros(1, I.Dim + 1);
+                    L(i+1) = 1;
+                    lower_a{len}(i,:) = L;
+                    
+                    U = zeros(1, I.Dim + 1);
+                    U(1) = -u/(u - l);
+                    U(i+1) = u/(u - l);
+                    upper_a{len}(i,:) = U;
+                    
+                    lb{len}(i) = l;
+                    ub{len}(i) = u;
+                    
+                    R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
+                end
+            end
+        end
+            
+        function R = approxReachReLU_relaxedpoly(I)
             % @I: intermediate input set
             
             if ~isa(I, 'RelaxedPoly')
@@ -570,101 +823,12 @@
 
             In = I;
             for i=1:I.Dim
-                In = ReLU.approxSingleStepReLU_rlxpoly(In,i);        
+                In = ReLU.approxSingleStepReLU_relaxedpoly(In,i);        
             end
             R = In;
         end
         
-        function R = approxStepReLU_rlxpoly(I, i)
-            % Zonotope approximation with decreasing function of lamda
-            % I: intermediate input set
-            % i: index of current neuron
-            % lb: lower-bound of x[i]
-            % ub: upper-bound of x[i]
-            % R: intermediate output set    
-            
-            if ~isa(I, 'RelaxedPoly')
-                error('Input set is not a RelaxedPoly object');
-            end
-            
-            [lb,ub] = I.getRange(i);
-            
-            if lb >= 0
-                R = I;
-            elseif ub <= 0
-                R = I;
-                R.lower_a(i) = 0;
-                R.upper_a(i) = 0;
-                R.lb(i) = 0;
-                R.ub(i) = 0;
-            else % lb < 0 && ub > 0
-                R = I;
-                if ub <= -lb
-                    R.lower_a(i) = 0;
-                    R.upper_a(i) = ub*(I.upper_a(i) - lb)/(ub - lb);
-                    R.lb(i) = 0;
-                else
-                    R.upper_a(i) = ub*(I.upper_a(i) - lb)/(ub - lb);
-                end
-            end
-        end
-        
-        function R = approxMultiStepReLU_rlxpoly(I)
-            % Zonotope approximation with decreasing function of lamda
-            % I: intermediate input set
-            % i: index of current neuron
-            % lb: lower-bound of x[i]
-            % ub: upper-bound of x[i]
-            % R: intermediate output set    
-            
-            if ~isa(I, 'RelaxedPoly')
-                error('Input set is not a RelaxedPoly object');
-            end
-            
-            %n = size(I.lower_a,1) - I.Dim + i
-            %[lb,ub] = I.getRange(n);
-            lb = I.lb(end-1:end);
-            ub = I.lb(end-1:end);
-            if lb >= 0
-                R = I;
-            elseif ub <= 0
-                lower_a = [I.lower_a; zeros(1, I.Dim)];
-                upper_a = [I.upper_a; zeros(1, I.Dim)];
-                lb = [I.lb; 0];
-                ub = [I.ub; 0];
-                R = RelaxedPoly(lower_a, upper_a, lb, ub);
-            else % lb < 0 && ub > 0
-                
-                if ub <= -lb
-                    lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
-
-                    %ub*(I.upper_a(n,i) - lb)/(ub - lb)
-                    upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub*lb/(ub - lb);
-                    upper_a(i) = ub/(ub - lb);
-                    upper_a = [I.upper_a; upper_a];
-                    
-                    lb = [I.lb; 0];
-                    ub = [I.ub; I.ub(n)];
-                    R = DeepPoly(lower_a, upper_a, lb, ub);
-                else
-                    lower_a = zeros(1, I.Dim +1);
-                    lower_a(i) = 1;
-                    lower_a = [I.lower_a; lower_a]
-                    
-                    upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub/(ub - lb);
-                    upper_a(i) = ub/(ub - lb);
-                    upper_a = [I.upper_a; upper_a];
-                    
-                    lb = [I.lb; I.lb(n)];
-                    ub = [I.ub; I.ub(n)];
-                    R = RelaxedPoly(lower_a, upper_a, lb, ub);
-                end
-            end
-        end
-        
-        function R = approxSingleStepReLU_rlxpoly(I, i)
+        function R = approxSingleStepReLU_relaxedpoly(I, i)
             % Zonotope approximation with decreasing function of lamda
             % I: intermediate input set
             % i: index of current neuron
@@ -677,7 +841,7 @@
             end
 
             n = size(I.lower_a,1) - I.Dim + 1;
-            [lb,ub] = I.getRange(n);
+            [lb,ub] = I.getAllRange(n);
 
             if lb >= 0
                 lower_a = zeros(1, I.Dim + 1);
@@ -691,8 +855,8 @@
                 lb = [I.lb; lb];
                 ub = [I.ub; ub];
                 nVar = [I.nVar; I.nVar(end)];
-                
-                R = RelaxedPoly(I.c, I.X , lower_a, upper_a, lb, ub, nVar);
+
+                R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
             elseif ub <= 0
                 lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
                 upper_a = [I.upper_a; zeros(1, I.Dim + 1)];
@@ -700,8 +864,8 @@
                 lb = [I.lb; 0];
                 ub = [I.ub; 0];
                 nVar = [I.nVar; I.nVar(end)];
-                
-                R = RelaxedPoly(I.c, I.X, lower_a, upper_a, lb, ub, nVar);
+
+                R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
             else % lb < 0 && ub > 0
                 if ub <= -lb
                     lower_a = [I.lower_a; zeros(1, I.Dim + 1)];
@@ -714,7 +878,8 @@
                     lb = [I.lb; 0];
                     ub = [I.ub; ub];
                     nVar = [I.nVar; I.nVar(end)];
-                    R = RelaxedPoly(I.c, I.X, lower_a, upper_a, lb, ub, nVar);
+                    
+                    R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
                 else
                     lower_a = zeros(1, I.Dim + 1);
                     lower_a(i+1) = 1;
@@ -729,7 +894,7 @@
                     ub = [I.ub; ub];
                     nVar = [I.nVar; I.nVar(end)];
                     
-                    R = RelaxedPoly(I.c, I.X, lower_a, upper_a, lb, ub, nVar);
+                    R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
                 end
             end
         end
