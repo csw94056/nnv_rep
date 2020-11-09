@@ -130,22 +130,17 @@ classdef RlxPoly
                 error('inconsistency between affine transformation matrix and bias vector');
             end
 
-            % update lower and upper polyhedral contraints
+            % new lower and upper polyhedral contraints
             lower_a = obj.lower_a;
             upper_a = obj.upper_a;
             len = length(lower_a);
-            
             lower_a{len+1} = [b W];
             upper_a{len+1} = [b W];
-            
-            l = obj.lb_backSub(lower_a, upper_a);
-            u = obj.ub_backSub(lower_a, upper_a);
-            
+            % new lower and uppper bounds
             lb = obj.lb;
             ub = obj.ub;
-            
-            lb{len+1} = l;
-            ub{len+1} = u;
+            lb{len+1} = obj.lb_backSub(lower_a, upper_a);
+            ub{len+1} = obj.ub_backSub(lower_a, upper_a);
             
 %             if len + 1 > obj.iter
 %                 lower_a = {lower_a{2:end}};
@@ -165,7 +160,8 @@ classdef RlxPoly
             alpha = lower_a{len}(:,2:end);
             lower_v = lower_a{len}(:,1);
             upper_v = zeros(nL, 1);
-
+            % b[s+1] = v' + sum( max(0,w[j]')*lower_a[j] + min(w[j]',0)*upper_a[j}] ) for j is element of k and for k < i
+            % iteration until lb' = b[s'] = v''
             len = len - 1;
             iter = 0;
             while (len > 1 && iter < maxIter)
@@ -200,7 +196,8 @@ classdef RlxPoly
             alpha = upper_a{len}(:,2:end);
             lower_v = zeros(nL, 1);
             upper_v = upper_a{len}(:,1);
-
+            % c[t+1] = v' + sum( max(0,w[j]')*upper_a[j] + min(w[j]',0)*lower_a[j}] )  for j is element of k and for k < i
+            % iteration until ub' = c[t'] = v''
             len = len - 1;
             iter = 1;
             while (len > 1 && iter < maxIter)

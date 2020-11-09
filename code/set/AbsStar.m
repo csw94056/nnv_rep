@@ -1,4 +1,4 @@
-classdef RlxStar
+classdef AbsStar
     
     properties
         V = []; % a set of basic vectors contains c and X
@@ -17,7 +17,7 @@ classdef RlxStar
     end
     
     methods
-        function obj = RlxStar(varargin)
+        function obj = AbsStar(varargin)
             switch nargin
                 case 0
                     obj.V = [];
@@ -93,7 +93,7 @@ classdef RlxStar
                     upper_a{1} = U;
                     lb{1} = l;
                     ub{1} = u;
-                    obj = RlxStar(V, C, d, lower_a, upper_a, lb, ub, iter);                   
+                    obj = AbsStar(V, C, d, lower_a, upper_a, lb, ub, iter);                   
                 case 8
                     V = varargin{1};
                     C = varargin{2};
@@ -158,10 +158,10 @@ classdef RlxStar
             end
 
             % update a set of basic vectors
-%             V = W * obj.V;
-%             if mb ~= 0
-%                 V(:, 1) = V(:, 1) + b;
-%             end
+            V = W * obj.V;
+            if mb ~= 0
+                V(:, 1) = V(:, 1) + b;
+            end
 
             % new lower and upper polyhedral contraints
             lower_a = obj.lower_a;
@@ -177,35 +177,35 @@ classdef RlxStar
             lb{len+1} = l;
             ub{len+1} = u;
 
-            [nX,mX] = size(obj.X);
-            [nC,mC] = size(obj.C);
-            X = obj.X;
-            
-            C0 = [obj.C zeros(nC, nW)];
-            d0 = obj.d;
-            % upper polyhedral constraint: x[i] <= sum(w[j]*x[j]); j is element of [i-1]
-            C1 = [-W*X eye(nW)];
-            d1 = b;
-            % lower polyhedral constraint: x[i] >= sum(w[j]*x[j]); j is element of [i-1]
-            C2 = [W*X -eye(nW)];
-            d2 = -b;
-            % upper varaible/node constraint: x[i] <= u
-            C3 = [zeros(nW, mX) eye(nW)];
-            d3 = u;
-            % lower variable/node constraint: x[i] >= l
-            C4 = [zeros(nW, mX) -eye(nW)];
-            d4 = -l;
-            % new predicate constraint matrix and vector
-            C = [C0; C1; C2; C3; C4];
-            d = [d0; d1; d2; d3; d4];
-            
-            %%%!!!!! NOTE: we don't need c and maybe X anymore due to upper and lower polyhedral constraints !!!!%%%
-            X = [zeros(nW, mX) eye(nW)];
-            c = zeros(nW, 1);
-            V = [c X];
-            
-            R = RlxStar(V, C, d, lower_a, upper_a, lb, ub, obj.iter);
-%             R = RlxStar(V, obj.C, obj.d, lower_a, upper_a, lb, ub, obj.iter); 
+%             [nX,mX] = size(obj.X);
+%             [nC,mC] = size(obj.C);
+%             X = obj.X;
+%             
+%             C0 = [obj.C zeros(nC, nW)];
+%             d0 = obj.d;
+%             % upper polyhedral constraint: x[i] <= sum(w[j]*x[j]); j is element of [i-1]
+%             C1 = [-W*X eye(nW)];
+%             d1 = b;
+%             % lower polyhedral constraint: x[i] >= sum(w[j]*x[j]); j is element of [i-1]
+%             C2 = [W*X -eye(nW)];
+%             d2 = -b;
+%             % upper varaible/node constraint: x[i] <= u
+%             C3 = [zeros(nW, mX) eye(nW)];
+%             d3 = u;
+%             % lower variable/node constraint: x[i] >= l
+%             C4 = [zeros(nW, mX) -eye(nW)];
+%             d4 = -l;
+%             % new predicate constraint matrix and vector
+%             C = [C0; C1; C2; C3; C4];
+%             d = [d0; d1; d2; d3; d4];
+%             
+%             %%%!!!!! NOTE: we don't need c and maybe X anymore due to upper and lower polyhedral constraints !!!!%%%
+%             X = [zeros(nW, mX) eye(nW)];
+%             c = zeros(nW, 1);
+%             V = [c X];
+%             
+%             R = AbsStar(V, C, d, lower_a, upper_a, lb, ub, obj.iter);
+            R = AbsStar(V, obj.C, obj.d, lower_a, upper_a, lb, ub, obj.iter); 
         end
 
         function lb = lb_backSub(obj, lower_a, upper_a)

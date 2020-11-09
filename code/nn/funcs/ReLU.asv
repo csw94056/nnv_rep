@@ -607,7 +607,8 @@
                 len = len - 1;
             end
             In = AbsStar(I.V, I.C, I.d, lower_a, upper_a, lb, ub, I.iter);
-            W = zeros(I.Dim, I.Dim + 1);
+            Wl = zeros(I.Dim, I.Dim + 1);
+            Wu = zeros(I.Dim, I.Dim + 1);
             for i=1:I.Dim
                 [In,W] = ReLU.approxSingleStepReLU_absstar(In,i,lb{len}(i),ub{len}(i),W)      
             end
@@ -615,25 +616,18 @@
             upper_a = In.upper_a;
             len = length(lower_a);
             
-            lower_a{len + 1} = W;
-            upper_a{len + 1} = [zeros(In.Dim,1) eye(In.Dim)];
+            lower_a{len + 1} =
+%             check_Wl = Wl
+%             check_Wu = Wu
+%             check_lower_a = lower_a{len}
+%             check_upper_a = upper_a{len}
+%             L = Wl(:,2:end)*lower_a{len}(:,2:end)
+%             U = Wu(:,2:end)*upper_a{len}(:,2:end);
+%             lower_a{len}(:,2:end) = L;
+% %             upper_a{len}(:,2:end) = U;
             
-            lb = I.lb;
-            ub = I.ub;
-            [l, u] = In.getRanges;
-            lb{len + 1} = l;
-            ub{len + 1} = u;
-% %             check_Wl = Wl
-% %             check_Wu = Wu
-% %             check_lower_a = lower_a{len}
-% %             check_upper_a = upper_a{len}
-% %             L = Wl(:,2:end)*lower_a{len}(:,2:end)
-% %             U = Wu(:,2:end)*upper_a{len}(:,2:end);
-% %             lower_a{len}(:,2:end) = L;
-% % %             upper_a{len}(:,2:end) = U;
-            
-%             R = AbsStar(In.V, In.C, In.d, lower_a, upper_a, lb, ub, In.iter);
-            R = In;
+            R = AbsStar(In.V, In.C, In.d, lower_a, upper_a, lb, ub, In.iter);
+%             R = In;
         end
         
         function [R,W] = approxSingleStepReLU_absstar(I, i, l, u, W)
@@ -719,7 +713,7 @@
                 
                 % polyhedral constraint 2: y[i] >= x[i]
                 L = zeros(1, I.Dim + 1);
-                L(i+1) = l;
+                L(i+1) = 1;
                 W(i,:) = L;
             end
         end
