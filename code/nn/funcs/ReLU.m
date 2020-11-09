@@ -609,20 +609,20 @@
             In = AbsStar(I.V, I.C, I.d, lower_a, upper_a, lb, ub, I.iter);
             W = zeros(I.Dim, I.Dim + 1);
             for i=1:I.Dim
-                [In,W] = ReLU.approxSingleStepReLU_absstar(In,i,lb{len}(i),ub{len}(i),W)      
+                [In,W] = ReLU.approxSingleStepReLU_absstar(In,i,lb{len}(i),ub{len}(i),W);     
             end
-            lower_a = In.lower_a;
-            upper_a = In.upper_a;
-            len = length(lower_a);
-            
-            lower_a{len + 1} = W;
-            upper_a{len + 1} = [zeros(In.Dim,1) eye(In.Dim)];
-            
-            lb = I.lb;
-            ub = I.ub;
-            [l, u] = In.getRanges;
-            lb{len + 1} = l;
-            ub{len + 1} = u;
+%             lower_a = In.lower_a;
+%             upper_a = In.upper_a;
+%             len = length(lower_a);
+%             
+%             lower_a{len + 1} = W;
+%             upper_a{len + 1} = [zeros(In.Dim,1) eye(In.Dim)];
+%             
+%             lb = I.lb;
+%             ub = I.ub;
+%             [l, u] = In.getRanges;
+%             lb{len + 1} = l;
+%             ub{len + 1} = u;
 % %             check_Wl = Wl
 % %             check_Wu = Wu
 % %             check_lower_a = lower_a{len}

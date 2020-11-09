@@ -2,21 +2,21 @@ close all;
 clear;
 clc;
 
-% W{1} = [1 1; 1 -1];
+W{1} = [1 1; 1 -1];
 % W{2} = [1 1; 1 -1];
 % W{3} = [1 1; 1 0];
 % 
-% b{1} = [0; 0];
-% b{2} = [0; 0];
+b{1} = [0; 0];
+% b{2} = [0; 1.5];
 % b{3} = [1; 0];
 
-steps = 3;
-for i = 1:steps
-%     W{i} = rand(2,2);
-%     b{i} = rand(2,1);
-
-    W{i} = randi([-5 5], 2,2);
-    b{i} = randi([-5 5], 2,1);
+steps = 6;
+for i = 2:steps
+    W{i} = rand(2,2);
+    b{i} = rand(2,1);
+% 
+%     W{i} = randi([-5 5], 2,2);
+%     b{i} = randi([-5 5], 2,1);
     
 %     W{i} = randi([0 5], 2,2);
 %     b{i} = randi([0 5], 2,1);
@@ -80,8 +80,8 @@ AbsS = AbsStar(P, inf);
 
 figure;
 nexttile;
-% plot(R, 'r');
-% hold on;
+plot(R, 'r');
+hold on;
 plot(Ru, 'b');
 hold on;
 plot(S, 'y');    
@@ -92,7 +92,7 @@ plot(AbsS, 'm');
 hold on;
 plot(Se, 'c');
 title('input');
-legend('Abs-dom Star','upperRlxStar','Exact-approx Star');
+legend('RlxPoly','Abs-dom Star','upperRlxStar','Exact-approx Star');
 % legend('RlxPoly', 'Abs-dom Star','RlxStar','Exact-approx Star');
 % legend('RlxPoly', 'RlxPoly upper','Abs-dom Star','RlxStar','AbsStar','Exact Approx Star');
 
@@ -104,8 +104,8 @@ for i = 1:steps
     Se = Se.affineMap(W{i}, b{i});
     AbsS = AbsS.affineMap(W{i}, b{i});
     nexttile;
-%     plot(R, 'r');
-%     hold on;
+    plot(R, 'r');
+    hold on;
     plot(Ru, 'b');
     hold on;
     plot(S, 'y');    
@@ -125,8 +125,8 @@ for i = 1:steps
     AbsS = ReLU.reach_approx(AbsS);
     
     nexttile;
-%     plot(R, 'r');
-%     hold on;
+    plot(R, 'r');
+    hold on;
     plot(Ru, 'b');
     hold on;
     plot(S, 'y');
