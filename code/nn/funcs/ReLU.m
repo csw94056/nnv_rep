@@ -705,7 +705,7 @@
                 % polyhedral constraint 1: y[i] >= 0
                 lower_a{len}(i,:) = zeros(1, I.Dim + 1);
                 U = zeros(1, I.Dim + 1);
-                U(1) = -u*l/(u - l);
+                U(1) = -l*u/(u - l);
                 U(i+1) = u/(u - l);
                 upper_a{len}(i,:) = U;
 
@@ -714,7 +714,7 @@
 
                 new_C = [C0; C1; C2; C3];
                 new_d = [d0; d1; d2; d3];
-
+                
                 R = AbsStar(new_V, new_C, new_d, lower_a, upper_a, lb, ub, I.iter);
                 
                 % polyhedral constraint 2: y[i] >= x[i]
@@ -829,7 +829,7 @@
                     d2 = 0;
                     
                     lower_a{len}(i,:) = zeros(1, I.Dim + 1);
-                    
+
                     U = zeros(1, I.Dim + 1);
                     U(1) = -u*l/(u - l);
                     U(i+1) = u/(u - l);
@@ -842,17 +842,20 @@
                     C2 = [X(i,:) -1];
                     d2 = -c(i);
                     
+                    % constraint 2: y[i] >= x[i]
                     L = zeros(1, I.Dim + 1);
                     L(i+1) = 1;
                     lower_a{len}(i,:) = L;
-                    
+
                     U = zeros(1, I.Dim + 1);
-                    U(1) = -u/(u - l);
+                    U(1) = -l*u/(u - l);
                     U(i+1) = u/(u - l);
                     upper_a{len}(i,:) = U;
-                    
+
                     lb{len}(i) = l;
                     ub{len}(i) = u;
+                    
+                    R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
                 end
                 
                 new_C = [C0; C1; C2];
@@ -1002,10 +1005,11 @@
                 R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
             else % lb < 0 && ub > 0
                 if u <= -l
+                    % constraint 2: y[i] >= 0
                     lower_a{len}(i,:) = zeros(1, I.Dim + 1);
                     
                     U = zeros(1, I.Dim + 1);
-                    U(1) = -u*l/(u - l);
+                    U(1) = -u*l/(u - l); %-u*l/(u - l);
                     U(i+1) = u/(u - l);
                     upper_a{len}(i,:) = U;
                     
@@ -1014,15 +1018,16 @@
                     
                     R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
                 else
+                    % constraint 2: y[i] >= x[i]
                     L = zeros(1, I.Dim + 1);
                     L(i+1) = 1;
                     lower_a{len}(i,:) = L;
-                    
+
                     U = zeros(1, I.Dim + 1);
-                    U(1) = -u/(u - l);
+                    U(1) = -l*u/(u - l);
                     U(i+1) = u/(u - l);
                     upper_a{len}(i,:) = U;
-                    
+
                     lb{len}(i) = l;
                     ub{len}(i) = u;
                     
@@ -1030,7 +1035,7 @@
                 end
             end
         end
-            
+
         function R = approxReachReLU_relaxedpoly(I)
             % @I: intermediate input set
             
@@ -1098,20 +1103,20 @@
                     
                     R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
                 else
-                    lower_a = zeros(1, I.Dim + 1);
-                    lower_a(i+1) = 1;
-                    lower_a = [I.lower_a; lower_a];
+                    % constraint 2: y[i] >= x[i]
+                    L = zeros(1, I.Dim + 1);
+                    L(i+1) = 1;
+                    lower_a{len}(i,:) = L;
+
+                    U = zeros(1, I.Dim + 1);
+                    U(1) = -l*u/(u - l);
+                    U(i+1) = u/(u - l);
+                    upper_a{len}(i,:) = U;
+
+                    lb{len}(i) = l;
+                    ub{len}(i) = u;
                     
-                    upper_a = zeros(1, I.Dim + 1);
-                    upper_a(1) = -ub/(ub - lb);
-                    upper_a(i+1) = ub/(ub - lb);
-                    upper_a = [I.upper_a; upper_a];
-                    
-                    lb = [I.lb; lb];
-                    ub = [I.ub; ub];
-                    nVar = [I.nVar; I.nVar(end)];
-                    
-                    R = RelaxedPoly(lower_a, upper_a, lb, ub, nVar);
+                    R = RlxPoly(lower_a, upper_a, lb, ub, I.iter);
                 end
             end
         end

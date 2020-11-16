@@ -97,14 +97,72 @@ classdef RlxStar
                 case 2
                     I = varargin{1};
                     iter = varargin{2};
-                  
+                    %{
+                    dim = I.Dim;
+                    if isa(I, 'Polyhedron')
+                        c = zeros(I.Dim,1);
+                        Ve = eye(I.Dim);
+                        V = [c Ve];
+                        if ~isempty(I.Ae)
+                            C = [I.A;I.Ae;-I.Ae];
+                            d = [I.b;I.be;-I.be];
+                        else
+                            C = I.A;
+                            d = I.b;
+                        end
+                        
+                        I.outerApprox;
+                        l = I.Internal.lb;
+                        u = I.Internal.ub;
+                        
+                        L = zeros(dim, 1);
+                        U = zeros(dim, 1);
+                        for i=1:dim
+                            L1 = zeros(dim, 1); 
+                            U1 = zeros(dim, 1);
+                            L1(i) = l(i);
+                            U1(i) = u(i);
+                            L = [L L1];
+                            U = [U U1];
+                        end
+                    elseif isa(I, 'Star')
+                        V = I.V;
+                        C = I.C;
+                        d = I.d;
+                        
+                        [l, u] = I.getRanges();
+                        c = (u + l)*0.5;
+                        x = (u - l)*0.5;
+
+                        X = [];
+                        for i=1:dim
+                            X1 = zeros(dim, 1);
+                            X1(i) = x(i);
+                            X = [X X1];   
+                        end
+                        
+                        L = [c, -X];
+                        U = [c, X];
+                    elseif isa(I, 'Zonotope')
+                        [l, u] = I.getRanges();
+                        L = [I.c, I.X];
+                        U = [I.c, -I.X];
+                    else
+                        error('Unkown imput set');
+                    end
+                    
+                    %}
                     if iter <= 0
                         error('Iteration must be greater than zero');
                     end
-                    
-                    obj = RlxStar(I);
-                    obj.iter = iter;
-                    
+                    %{
+                    lower_a{1} = L;
+                    upper_a{1} = U;
+                    lb{1} = l;
+                    ub{1} = u;
+                    %}
+                    obj = RlxStar(I)
+                    obj = RlxStar(V, C, d, lower_a, upper_a, lb, ub, iter);                   
                 case 8
                     V = varargin{1};
                     C = varargin{2};
@@ -320,10 +378,18 @@ classdef RlxStar
         end
         
         function P = toPolyhedron(obj)
+%             m = size(obj.C, 2);
+%             C1 = [eye(m); -eye(m)];
+%             [lb, ub] = obj.getRanges;
+%             d1 = [ub; -lb];
+%             P1 = Polyhedron('A', [obj.C; C1], 'b', [obj.d; d1]);
+
             P1 = Polyhedron('A', [obj.C], 'b', [obj.d]);
             X = obj.X;
             c = obj.c;
             P = X*P1 + c;
+
+%             P = Polyhedron('A', [obj.C], 'b', [obj.d]);
         end
         
         function plot (varargin)

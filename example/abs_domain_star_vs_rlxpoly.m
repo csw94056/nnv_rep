@@ -1,22 +1,28 @@
 close all;
 clear;
 clc;
-
-W{1} = [1 1; 1 -1];
-% W{2} = [1 1; 1 -1];
-% W{3} = [1 1; 1 0];
 % 
-b{1} = [0; 0];
+% W{1} = [1 1; 1 -1];
+% % W{2} = [1 1; 1 -1];
+% % W{3} = [1 1; 1 0];
+% % 
+% b{1} = [0; 0];
 % b{2} = [0; 1.5];
 % b{3} = [1; 0];
 
-steps = 6;
-for i = 2:steps
-    W{i} = rand(2,2);
-    b{i} = rand(2,1);
+steps = 10;
+for i = 1:steps
+%     W{i} = rand(2,2);
+%     b{i} = rand(2,1);
 % 
 %     W{i} = randi([-5 5], 2,2);
 %     b{i} = randi([-5 5], 2,1);
+    
+%     W{i} = -1 + 2*rand(2,2);
+%     b{i} = -1 + 2*rand(2,1);
+    
+    W{i} = -10 + 20*rand(2,2);
+    b{i} = -10 + 20*rand(2,1);
     
 %     W{i} = randi([0 5], 2,2);
 %     b{i} = randi([0 5], 2,1);
@@ -59,18 +65,20 @@ end
 % b{3} = [0.178788094416603; 0.305273656760658];
 
 %example why AbsS is more conservative than exact-approx Star
-W{1} = [5 -1; 3 2];
-W{2} = [3 -2; 4 0];
-W{3} = [-1 1; 1 0];
-W{4} = [-3 -5; 4 -5];
-W{5} = [1 5; -3 5];
-b{1} = [3; -2];
-b{2} = [2; 2];
-b{3} = [0; 3];
-b{4} = [0; -5];
-b{5} = [1; 5];
+% W{1} = [5 -1; 3 2];
+% W{2} = [3 -2; 4 0];
+% W{3} = [-1 1; 1 0];
+% W{4} = [-3 -5; 4 -5];
+% W{5} = [1 5; -3 5];
+% b{1} = [3; -2];
+% b{2} = [2; 2];
+% b{3} = [0; 3];
+% b{4} = [0; -5];
+% b{5} = [1; 5];
 
+% P = Polyhedron('lb', [-1, 0], 'ub', [1, 0]);
 P = Polyhedron('lb', [-1; -1], 'ub', [1; 1]);
+% P = Polyhedron('lb', [0; 0], 'ub', [1; 1]);
 S = Star(P);
 R = RlxPoly(P, inf);        % RlxPoly with original constraints
 Ru = RlxPoly(P, inf);       % RlxPoly with only u >= -1 constraints
@@ -80,21 +88,21 @@ AbsS = AbsStar(P, inf);
 
 figure;
 nexttile;
-plot(R, 'r');
-hold on;
+% plot(R, 'r');
+% hold on;
 plot(Ru, 'b');
 hold on;
-plot(S, 'y');    
-hold on;
+% plot(S, 'y');    
+% hold on;
 % plot(RlxS, 'g');
 % hold on;
 plot(AbsS, 'm');
 hold on;
 plot(Se, 'c');
 title('input');
-legend('RlxPoly','Abs-dom Star','upperRlxStar','Exact-approx Star');
+% legend('RlxPoly','Abs-dom Star','upperRlxStar','Exact-approx Star');
 % legend('RlxPoly', 'Abs-dom Star','RlxStar','Exact-approx Star');
-% legend('RlxPoly', 'RlxPoly upper','Abs-dom Star','RlxStar','AbsStar','Exact Approx Star');
+legend('RlxPoly', 'RlxPoly upper','Abs-dom Star','RlxStar','AbsStar','Exact Approx Star');
 
 for i = 1:steps
     S = S.affineMap(W{i}, b{i});
@@ -104,12 +112,12 @@ for i = 1:steps
     Se = Se.affineMap(W{i}, b{i});
     AbsS = AbsS.affineMap(W{i}, b{i});
     nexttile;
-    plot(R, 'r');
-    hold on;
+%     plot(R, 'r');
+%     hold on;
     plot(Ru, 'b');
     hold on;
-    plot(S, 'y');    
-    hold on;
+%     plot(S, 'y');    
+%     hold on;
 %     plot(RlxS, 'g');
 %     hold on;
     plot(AbsS, 'm');
@@ -125,14 +133,14 @@ for i = 1:steps
     AbsS = ReLU.reach_approx(AbsS);
     
     nexttile;
-    plot(R, 'r');
-    hold on;
+%     plot(R, 'r');
+%     hold on;
     plot(Ru, 'b');
     hold on;
-    plot(S, 'y');
+%     plot(S, 'y');
 %     hold on;
 %     plot(RlxS, 'g');
-    hold on;
+%     hold on;
     plot(AbsS, 'm');
     hold on;
     plot(Se, 'c');
@@ -140,18 +148,18 @@ for i = 1:steps
 end
 
 figure;
-nexttile;
-plot(R, 'r');
-title('RlxStar');
+% nexttile;
+% plot(R, 'r');
+% title('RlxStar');
 nexttile;
 plot(Ru, 'b');
 title('upperRlxStar');
-nexttile;
-plot(S, 'y');
-title('abs-dom Star');
-nexttile;
-plot(RlxS, 'g');
-title('RlxStar');
+% nexttile;
+% plot(S, 'y');
+% title('abs-dom Star');
+% nexttile;
+% plot(RlxS, 'g');
+% title('RlxStar');
 nexttile;
 plot(Se, 'c');
 title('exact-approx Star');
