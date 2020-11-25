@@ -86,19 +86,38 @@ classdef Zonotope
         end
         
         function [lb, ub] = getRanges(obj)
-            ub = transpose(max(obj.X', [], 1));
-            lb = -ub;
+%             ub = transpose(max(obj.X', [], 1));
+%             lb = -ub;
+%             
+%             ub = ub + obj.c;
+%             lb = lb + obj.c;
             
-            ub = ub + obj.c;
-            lb = lb + obj.c;
+            lb = zeros(obj.Dim, 1);
+            ub = zeros(obj.Dim, 1);
+                        
+            for i=1:obj.Dim
+                lb(i) = obj.c(i) - norm(obj.X(i, :), 1);
+                ub(i) = obj.c(i) + norm(obj.X(i, :), 1);
+            end
         end
         
-        function [lb, ub] = getRange(obj, i)
-            ub = transpose(max(obj.X(i,:)', [], 1));
-            lb = -ub;
+        function [lb, ub] = getRange(obj, j)
+%             ub = transpose(max(obj.X(i,:)', [], 1));
+%             lb = -ub;
+%             
+%             ub = ub + obj.c(i);
+%             lb = lb + obj.c(i);
+
+            lb = zeros(obj.Dim, 1);
+            ub = zeros(obj.Dim, 1);
+                        
+            for i=1:obj.Dim
+                lb(i) = obj.c(i) - norm(obj.X(i, :), 1);
+                ub(i) = obj.c(i) + norm(obj.X(i, :), 1);
+            end
             
-            ub = ub + obj.c(i);
-            lb = lb + obj.c(i);
+            lb = lb(j);
+            ub = ub(j);
         end
         
         function P = toPolyhedron(obj)

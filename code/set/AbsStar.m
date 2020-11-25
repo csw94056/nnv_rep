@@ -177,34 +177,6 @@ classdef AbsStar
             lb{len+1} = l;
             ub{len+1} = u;
 
-%             [nX,mX] = size(obj.X);
-%             [nC,mC] = size(obj.C);
-%             X = obj.X;
-%             
-%             C0 = [obj.C zeros(nC, nW)];
-%             d0 = obj.d;
-%             % upper polyhedral constraint: x[i] <= sum(w[j]*x[j]); j is element of [i-1]
-%             C1 = [-W*X eye(nW)];
-%             d1 = b;
-%             % lower polyhedral constraint: x[i] >= sum(w[j]*x[j]); j is element of [i-1]
-%             C2 = [W*X -eye(nW)];
-%             d2 = -b;
-%             % upper varaible/node constraint: x[i] <= u
-%             C3 = [zeros(nW, mX) eye(nW)];
-%             d3 = u;
-%             % lower variable/node constraint: x[i] >= l
-%             C4 = [zeros(nW, mX) -eye(nW)];
-%             d4 = -l;
-%             % new predicate constraint matrix and vector
-%             C = [C0; C1; C2; C3; C4];
-%             d = [d0; d1; d2; d3; d4];
-%             
-%             %%%!!!!! NOTE: we don't need c and maybe X anymore due to upper and lower polyhedral constraints !!!!%%%
-%             X = [zeros(nW, mX) eye(nW)];
-%             c = zeros(nW, 1);
-%             V = [c X];
-%             
-%             R = AbsStar(V, C, d, lower_a, upper_a, lb, ub, obj.iter);
             R = AbsStar(V, obj.C, obj.d, lower_a, upper_a, lb, ub, obj.iter); 
         end
 

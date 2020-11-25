@@ -2,10 +2,10 @@ close all;
 clear;
 clc;
 
-steps = 3;
-for i = 1:steps
-    W{i} = rand(2,2);
-    b{i} = rand(2,1);
+% steps = 3;
+% for i = 1:steps
+%     W{i} = rand(2,2);
+%     b{i} = rand(2,1);
 
 %     W{i} = randi([-5 5], 2,2);
 %     b{i} = randi([-5 5], 2,1);
@@ -18,7 +18,7 @@ for i = 1:steps
 %     
 %     W{i} = randi([0 5], 2,2);
 %     b{i} = randi([0 5], 2,1);
-end
+% end
 
 % W{1} = [1 1; 1 -1];
 % W{2} = [1 1; 1 -1];
@@ -38,12 +38,24 @@ end
 % b{3} = [0.661881133589573; 0.656915139738211];
 % b{4} = [0.533401905477953; 0.447770431174552];
 
+%Ex 1 AbsS is conservative than Se
+W{1} = [2 -2; 3 -3];
+W{2} = [5 -2; 3 1];
+% W{3} = [4 -5; 1 -3]; 
+b{1} = [-2; -2]; 
+b{2} = [3;  4];
+% b{3} = [4; -1]
+steps = length(W);
+
+
 
 
 P = Polyhedron('lb', [-1; -1], 'ub', [1; 1]);
 S = Star(P);
 R = RlxPoly(P, inf);        % RlxPoly with original constraints
 RlxS = RlxStar(P, inf);
+Ru = RlxPoly(P, inf);       % RlxPoly with only u >= -1 constraints
+AbsS = AbsStar(P, inf);
 Se = Star(P);
 
 figure;
@@ -54,6 +66,8 @@ plot(S, 'y');
 hold on;
 plot(RlxS, 'g');
 hold on;
+plot(AbsS, 'g');
+hold on;
 plot(Se, 'c');
 title('input');
 legend('Sung Abs-Dom', 'NNV Abs-Dom','Sung Star with Abs-Dom bounds', 'NNV approx');
@@ -62,6 +76,7 @@ for i = 1:steps
     R = ReLU.layerReach(R, W{i}, b{i}, 'approx');
     S = ReLU.layerReach(S, W{i}, b{i}, 'abs_domain');
     RlxS = ReLU.layerReach(RlxS, W{i}, b{i}, 'approx');
+    AbsS = ReLU.layerReach(AbsS, W{i}, b{i}, 'approx');
     Se = ReLU.layerReach(Se, W{i}, b{i}, 'approx');
     
     nexttile;
@@ -70,6 +85,7 @@ for i = 1:steps
     plot(S, 'y');
     hold on;
     plot(RlxS, 'g');
+    plot(AbsS, 'g');
     hold on;
     plot(Se, 'c');
     if i < steps
@@ -81,15 +97,18 @@ for i = 1:steps
 end
 
 figure('Name', 'Output Layer Reachable Set');
-nexttile;
-plot(R, 'r');
-title('Sung Abs-Dom');
-nexttile;
-plot(S, 'y');
-title('NNV Abs-Dom');
-nexttile;
-plot(RlxS, 'g');
-title('Sung Star with Abs-Dom bounds');
+% nexttile;
+% plot(R, 'r');
+% title('Sung Abs-Dom');
+% nexttile;
+% plot(S, 'y');
+% title('NNV Abs-Dom');
+% nexttile;
+% plot(RlxS, 'g');
+% title('Sung Star with Abs-Dom bounds');
+nexttile
+plot(AbsS, 'g');
+title('AbsS');
 nexttile;
 plot(Se, 'c');
 title('NNV approx');

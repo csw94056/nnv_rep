@@ -23,6 +23,8 @@ classdef RlxStar
                     obj.V = [];
                     obj.C = [];
                     obj.d = [];
+                    obj.c = [];
+                    obj.X = [];
                     obj.lower_a = {[]};
                     obj.upper_a = {[]};
                     obj.lb = [];
@@ -31,6 +33,8 @@ classdef RlxStar
                     obj.Dim = 0;
                 case 1
                     I = varargin{1};
+                    obj.c = [];
+                    obj.X = [];
                     iter = Inf;
                     dim = I.Dim;
                     if isa(I, 'Polyhedron')
@@ -106,6 +110,8 @@ classdef RlxStar
                     obj.iter = iter;
                     
                 case 8
+                    obj.c = [];
+                    obj.X = [];
                     V = varargin{1};
                     C = varargin{2};
                     d = varargin{3};

@@ -296,5 +296,31 @@ classdef Star
                 end
             end
         end
+%         function bool = isEmptySet(obj)
+%             % author: Dung Tran
+%             % date: 
+%             % update: 6/16/2020
+%             % update: 7/15/2020 The isEmptySet method in Polyhedron object
+%             % has bug
+%             
+%             options = optimoptions(@linprog, 'Display','none'); 
+%             options.OptimalityTolerance = 1e-10; % set tolerance
+%             V = obj.get_V;
+%             nVar = size(V,2);
+%             f = zeros(1, nVar);
+% %             [~, ~, exitflag, ~] = linprog(f, obj.C, obj.d, [], [], obj.predicate_lb, obj.predicate_ub, options);
+%             [~, ~, exitflag, ~] = linprog(f, obj.C, obj.d, [], [], [], [], options);
+%             if exitflag == 1
+%                 bool = 0;
+%             elseif exitflag == -2
+%                 bool = 1;
+%             else
+%                 error('Error, exitflag = %d', exitflag);
+%             end
+%             
+% %             P = Polyhedron('A', obj.C, 'b', obj.d, 'lb', obj.predicate_lb, 'ub', obj.predicate_ub);
+% %             bool = P.isEmptySet;
+%             
+%         end
     end
 end
