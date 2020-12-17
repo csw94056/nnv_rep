@@ -693,15 +693,15 @@
                 d3 = -c(i);
 
                 % polyhedral constraint 1: y[i] >= 0
-                if l==0 && u > -l
-                    % constraint 2: y[i] >= x[i]
-                    L = zeros(1, I.Dim + 1);
-                    L(i+1) = 1;
-                    lower_a{len}(i,:) = L;
-                else
+%                 if l==0 && u > -l
+%                     % constraint 2: y[i] >= x[i]
+%                     L = zeros(1, I.Dim + 1);
+%                     L(i+1) = 1;
+%                     lower_a{len}(i,:) = L;
+%                 else
                     % constraint 2: y[i] >= 0
                     lower_a{len}(i,:) = zeros(1, I.Dim + 1);
-                end
+%                 end
                 U = zeros(1, I.Dim + 1);
                 U(1) = -l*u/(u - l);
                 U(i+1) = u/(u - l);

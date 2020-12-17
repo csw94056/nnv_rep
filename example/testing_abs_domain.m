@@ -10,8 +10,7 @@ clc;
 % b{2} = [0; 1.5];
 % b{3} = [1; 0];
 
-% steps = 3;
-% for i = 1:steps
+for i = 1:2
 %     W{i} = rand(2,2);
 %     b{i} = rand(2,1);
 
@@ -23,7 +22,7 @@ clc;
     
 %     W{i} = randi([0 5], 2,2);
 %     b{i} = randi([0 5], 2,1);
-% end
+end
 
 % hidden layers have 3 nodes
 % W{1} = rand(3,2);
@@ -62,19 +61,20 @@ clc;
 % b{3} = [0.178788094416603; 0.305273656760658];
 
 %example why AbsS is more conservative than exact-approx Star
-% W{1} = [5 -1; 3 2];
-% W{2} = [3 -2; 4 0];
-% W{3} = [-1 1; 1 0];
-% W{4} = [-3 -5; 4 -5];
-% W{5} = [1 5; -3 5];
-% b{1} = [3; -2];
-% b{2} = [2; 2];
-% b{3} = [0; 3];
-% b{4} = [0; -5];
-% b{5} = [1; 5];
+W{1} = [5 -1; 3 2];
+W{2} = [3 -2; 4 0];
+W{3} = [-1 1; 1 0];
+W{4} = [-3 -5; 4 -5];
+W{5} = [1 5; -3 5];
+b{1} = [3; -2];
+b{2} = [2; 2];
+b{3} = [0; 3];
+b{4} = [0; -5];
+b{5} = [1; 5];
 
-W{1} = [1 -1; 1 1];
-W{2} = [1 -1; -1 1];
+% % W{1} = [1 -1; 1 -1];
+% % W{2} = [1 1; 1 -1];
+% W{3} = [1 1; 1 1];
 % W{3} = [-1 1; 1 1];
 %Ex 2 RlxS is more conservative than AbsS is conservative than Se
 % W{1} = [1 -1; 1 -1];
@@ -87,24 +87,29 @@ W{2} = [1 -1; -1 1];
 % W{1} = [1 1; 1 -1];
 % W{2} = [1 1; 1 -1];
 % W{3} = [1 1; 0 1];
-b{1} = [0; 0]; 
-b{2} = [0; 0];
-b{3} = [0; 0];
+% % b{1} = [0; 0]; 
+% % b{2} = [0; 0];
+% % b{3} = [0; 0];
 % b{3} = [4; -1]
 steps = length(W);
 
-
-% P = Polyhedron('lb', [-1, 0], 'ub', [1, 0]);
-P = Polyhedron('lb', [-1; -1], 'ub', [1; 1]);
-% P = Polyhedron('lb', [0; 0], 'ub', [1; 1]);
+lb = [-1; -1];
+ub = [1; 1];
+P = Polyhedron('lb', lb, 'ub', ub);
 S = Star(P);
 R = RlxPoly(P, inf);        % RlxPoly with original constraints
 Ru = RlxPoly(P, inf);       % RlxPoly with only u >= -1 constraints
 RlxS = RlxStar(P, inf);
 Se = Star(P);
 AbsS = AbsStar(P, inf);
+p{1} = (lb + ub) * 0.5;
+p{2} = lb;
+p{3} = ub;
+p{4} = [ub(1); lb(1)];
+p{5} = [lb(1); ub(2)];
+RlxS = RlxStar(P, inf);
 
-figure;
+figure('Name','Sung Star with Abs-Dom bounds');
 nexttile;
 % plot(R, 'r');
 % hold on;
@@ -117,11 +122,19 @@ hold on;
 plot(AbsS, 'm');
 hold on;
 plot(Se, 'c');
-title('input');
+title('input')
+hold on;
+for i = 1:length(p)
+    plot(p{i}(1),p{i}(2), '*', 'color', 'black');
+end
+hold off;
+title('Input Set');
 % legend('RlxPoly','Abs-dom Star','upperRlxStar','Exact-approx Star');
 % legend('RlxPoly', 'Abs-dom Star','RlxStar','Exact-approx Star');
 legend('Sung Abs-Dom upper','Sung Abs-Dom Star', 'Sung Abs-Dom Star upper with 3 const','NNV Approx Star');
 
+
+steps = length(W);
 for i = 1:steps
     S = S.affineMap(W{i}, b{i});
     R = R.affineMap(W{i}, b{i});
@@ -138,30 +151,57 @@ for i = 1:steps
 %     hold on;
     plot(RlxS, 'g');
     hold on;
+    plot(Se, 'c');
+    hold on;
     plot(AbsS, 'm');
     hold on;
-    plot(Se, 'c');
+    for j = 1:length(p)
+        p{j} = point_affineMap(p{j}, W{i}, b{i});
+        if length(p{j}) == 3
+            plot3(p{j}(1),p{j}(2),p{j}(3), '*', 'color', 'black');
+            xlabel('x1');
+            ylabel('x2');
+            zlabel('x3');
+        else
+            plot(p{j}(1),p{j}(2), '*', 'color', 'black');
+            xlabel('x1');
+            ylabel('x2');
+        end
+    end
+    hold off;
     title('affine map');
-
-    S = ReLU.reach_approx(S, 'abs_domain');
-    R = ReLU.reach_approx(R, 'approx');
-    Ru = ReLU.reach_approx(Ru, 'upper');
-    RlxS = ReLU.reach_approx(RlxS);
-    Se = ReLU.reach_approx(Se, 'approx');
-    AbsS = ReLU.reach_approx(AbsS);
     
     nexttile;
 %     plot(R, 'r');
 %     hold on;
+
+    S = ReLU.reach_approx(S, 'abs_domain');
     plot(Ru, 'b');
     hold on;
 %     plot(S, 'y');
 %     hold on;
     plot(RlxS, 'g');
+    
+    hold on;
+    plot(Se, 'c');
+    
     hold on;
     plot(AbsS, 'm');
     hold on;
-    plot(Se, 'c');
+    for j = 1:length(p)
+        p{j} = point_reach(p{j});
+        if length(p{j}) == 3
+            plot3(p{j}(1),p{j}(2),p{j}(3), '*', 'color', 'black');
+            xlabel('x1');
+            ylabel('x2');
+            zlabel('x3');
+        else
+            plot(p{j}(1),p{j}(2), '*', 'color', 'black');
+            xlabel('x1');
+            ylabel('x2');
+        end
+    end
+    hold off;
     title('ReLU');
 end
 
@@ -184,3 +224,32 @@ title('exact-approx Star');
 nexttile;
 plot(AbsS, 'm');
 title('Sung Abs-Dom Star upper with 3 const');
+nexttile;
+hold on;
+for j = 1:length(p)
+    p{j} = point_reach(p{j});
+    if length(p{j}) == 3
+        plot3(p{j}(1),p{j}(2),p{j}(3), '*', 'color', 'black');
+        xlabel('x1');
+        ylabel('x2');
+        zlabel('x3');
+    else
+        plot(p{j}(1),p{j}(2), '*', 'color', 'black');
+        xlabel('x1');
+        ylabel('x2');
+    end
+end
+hold off;
+title('dot plots');
+    
+function r = point_affineMap(p, W, b)
+    r = W*p + b;
+end
+
+function r = point_reach(p)
+    r = max(0,p);
+end
+
+function r = point_layerReach(p, W, b)
+    r = max(0,W*p + b);
+end

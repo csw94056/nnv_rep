@@ -155,11 +155,13 @@ classdef RlxPoly
 
         function lb = lb_backSub(obj, lower_a, upper_a)
             maxIter = obj.iter;
-            len = length(lower_a);
-            [nL, mL] = size(lower_a{len});
-            alpha = lower_a{len}(:,2:end);
-            lower_v = lower_a{len}(:,1);
-            upper_v = zeros(nL, 1);
+            len = length(upper_a);
+            [nL, mL] = size(upper_a{len});
+            alpha = upper_a{len}(:,2:end);
+%             lower_v = lower_a{len}(:,1)
+%             upper_v = zeros(nL, 1)
+            lower_v = zeros(nL, 1);
+            upper_v = upper_a{len}(:,1);
             % b[s+1] = v' + sum( max(0,w[j]')*lower_a[j] + min(w[j]',0)*upper_a[j}] ) for j is element of k and for k < i
             % iteration until lb' = b[s'] = v''
             len = len - 1;
@@ -173,7 +175,7 @@ classdef RlxPoly
 
                 lower_v = max_a * lower_a{len}(:,1) + lower_v;
                 upper_v = min_a * upper_a{len}(:,1) + upper_v;
-
+                
                 alpha = max_a * lower_a{len}(:,2:end) + ...
                         min_a * upper_a{len}(:,2:end);
 
@@ -191,8 +193,8 @@ classdef RlxPoly
         
         function ub = ub_backSub(obj, lower_a, upper_a)
             maxIter = obj.iter;
-            len = length(lower_a);
-            [nL, mL] = size(lower_a{len});
+            len = length(upper_a);
+            [nL, mL] = size(upper_a{len});
             alpha = upper_a{len}(:,2:end);
             lower_v = zeros(nL, 1);
             upper_v = upper_a{len}(:,1);
@@ -205,13 +207,16 @@ classdef RlxPoly
                 dim = nL;
                 
                 max_a = max(0, alpha);
-                min_a = min(alpha, 0);
+%                 min_a = min(alpha, 0);
                 
-                lower_v = min_a * lower_a{len}(:,1) + lower_v;
+%                 lower_v = min_a * lower_a{len}(:,1) + lower_v;
                 upper_v = max_a * upper_a{len}(:,1) + upper_v;
                 
-                alpha = min_a * lower_a{len}(:,2:end) + ...
-                        max_a * upper_a{len}(:,2:end);
+                %%%%%%%%%%test%%%%%%%%%%%
+                alpha = max_a * upper_a{len}(:,2:end);
+                %%%%%%%%%%test%%%%%%%%%%%
+%                 alpha = min_a * lower_a{len}(:,2:end) + ...
+%                         max_a * upper_a{len}(:,2:end);
 
                 len = len - 1;
                 iter = iter + 1;

@@ -49,7 +49,7 @@ RlxS = RlxStar(P, inf);
 
 figure('Name','Sung Star with Abs-Dom bounds');
 nexttile;
-% plot(RlxS, 'c');
+plot(RlxS, 'c');
 hold on;
 for i = 1:length(p)
     plot(p{i}(1),p{i}(2), '*', 'color', 'black');
@@ -62,19 +62,18 @@ steps = length(W);
 for i = 1:steps
     nexttile;
     RlxS = ReLU.layerReach(RlxS, W{i}, b{i}, 'approx');
-%     plot(RlxS, 'c');
+    plot(RlxS, 'c');
     
+    hold on;
     for j = 1:length(p)
         p{j} = point_layerReach(p{j}, W{i}, b{i});
         if length(p{j}) == 3
             plot3(p{j}(1),p{j}(2),p{j}(3), '*', 'color', 'black');
-            hold on;
             xlabel('x1');
             ylabel('x2');
             zlabel('x3');
         else
             plot(p{j}(1),p{j}(2), '*', 'color', 'black');
-            hold on;
             xlabel('x1');
             ylabel('x2');
         end

@@ -10,15 +10,15 @@ clc;
 % b{2} = [0; 1.5];
 % b{3} = [1; 0];
 
-for i = 1:2
+for i = 1:5
 %     W{i} = rand(2,2);
 %     b{i} = rand(2,1);
 
 %     W{i} = -1 + 2*rand(2,2);
 %     b{i} = -1 + 2*rand(2,1);
     
-    W{i} = -10 + 20*rand(2,2);
-    b{i} = -10 + 20*rand(2,1);
+%     W{i} = -10 + 20*rand(2,2);
+%     b{i} = -10 + 20*rand(2,1);
     
 %     W{i} = randi([0 5], 2,2);
 %     b{i} = randi([0 5], 2,1);
@@ -71,6 +71,30 @@ end
 % b{3} = [0; 3];
 % b{4} = [0; -5];
 % b{5} = [1; 5];
+%example2 why AbsS is more conservative than exact-approx Star
+% W{1} = [-6.9348 9.5514; -2.4429 9.8134];
+% W{2} = [2.5300 -2.6636; -6.8864 1.3701];
+% W{3} = [-4.9032 7.8001; 8.3014 6.9620];
+% W{4} = [-9.5327 -7.1667; 0.7005 8.5443];
+% W{5} = [8.7960 -7.5174; 2.3997 -4.8236];
+% b{1} = [-5.3579; -5.6636];
+% b{2} = [-6.1321; 6.1095];
+% b{3} = [-3.8838; -4.6882];
+% b{4} = [-3.4347; -8.7425];
+% b{5} = [1.5628; 9.7556];
+
+%example3 why AbsS is more conservative than exact-approx Star
+W{1} = [-6 9; -2 9];
+W{2} = [2 -2; -6 1];
+W{3} = [-4 7; 8 6];
+W{4} = [-9 -7; 0 8];
+W{5} = [8 -7; 2 -4];
+b{1} = [-5; -5];
+b{2} = [-6; 6];
+b{3} = [-3; -4];
+b{4} = [-3; -8];
+b{5} = [1; 9];
+
 
 % % W{1} = [1 -1; 1 -1];
 % % W{2} = [1 1; 1 -1];
@@ -81,21 +105,22 @@ end
 % W{2} = [-1 1; -1 1];
 % example AbsS more conservative
 % W{1} = [1 -1; 1 -1];
-% W{2} = [1 1; 1 -1];
+% W{2} = [-1 1; -1 1];
 % W{3} = [1 1; 1 -1];
 % original example
 % W{1} = [1 1; 1 -1];
 % W{2} = [1 1; 1 -1];
 % W{3} = [1 1; 0 1];
-% % b{1} = [0; 0]; 
-% % b{2} = [0; 0];
-% % b{3} = [0; 0];
+% b{1} = [0; 0]; 
+% b{2} = [0; 0];
+% b{3} = [0; 0];
 % b{3} = [4; -1]
 steps = length(W);
 
 
 % P = Polyhedron('lb', [-1, 0], 'ub', [1, 0]);
 P = Polyhedron('lb', [-1; -1], 'ub', [1; 1]);
+% P = Polyhedron('lb', [0; 0], 'ub', [1; 1]);
 % P = Polyhedron('lb', [0; 0], 'ub', [1; 1]);
 S = Star(P);
 R = RlxPoly(P, inf);        % RlxPoly with original constraints
@@ -138,14 +163,12 @@ for i = 1:steps
 %     hold on;
     plot(RlxS, 'g');
     hold on;
-    
-    plot(Se, 'c');
-    hold on;
     plot(AbsS, 'm');
+    hold on;
+    plot(Se, 'c');
+    
     
     title('affine map');
-
-    S = ReLU.reach_approx(S, 'abs_domain');
     R = ReLU.reach_approx(R, 'approx');
     Ru = ReLU.reach_approx(Ru, 'upper');
     RlxS = ReLU.reach_approx(RlxS);
@@ -155,17 +178,19 @@ for i = 1:steps
     nexttile;
 %     plot(R, 'r');
 %     hold on;
+
+    S = ReLU.reach_approx(S, 'abs_domain');
     plot(Ru, 'b');
     hold on;
 %     plot(S, 'y');
 %     hold on;
     plot(RlxS, 'g');
-    
+    hold on;
+    plot(AbsS, 'm');
     hold on;
     plot(Se, 'c');
     
-    hold on;
-    plot(AbsS, 'm');
+    
     title('ReLU');
 end
 
